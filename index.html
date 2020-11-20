@@ -7,17 +7,25 @@
   var grammi;
   var farina_g;
   var farina_c;
+  var calcola;
+  var risultato;
   grammi = document.getElementById("num_1").value;
   farina_g = document.getElementById("num_2").value;
   farina_c = document.getElementById("num_3").value;
+  calcola = document.getElementById("mySelect").value;
+  
+  if(calcola == "D"){
   
   if(grammi <= 0 || farina_g <= 0 || farina_c <=0)
   {
+   
      
     alert("Inserire valori");
+	
   }
   else{
-  var risultato = (grammi*1)/(farina_g*1)*(farina_c*1);
+      //Dosi
+   risultato = (grammi*1)/(farina_g*1)*(farina_c*1);
     if(risultato < 1){
 	  alert("Rinserire valori");
 	} 
@@ -25,8 +33,42 @@
       document.getElementById("risultato").innerHTML = +" "+ risultato+" "+"g";
      }
   }
- }
  
+  }else
+  {
+     //Raddoppia
+     
+     risultato = (grammi*1)*2;
+	  if( grammi == 0)
+	  {
+	    alert("inserire valori");
+	  }
+	  else
+	  {
+	     document.getElementById("risultato").innerHTML = +" "+ risultato+" "+"g";
+	
+	  }
+  }
+}
+ function changeDropdown()
+ {
+     var state= document.getElementById("mySelect").value;
+	 if( state == "R")
+	 {
+	    document.getElementById("num_1").value = "0";
+	    document.getElementById("farina").style.visibility='hidden';
+		document.getElementById("risultato").style.visibility='hidden';
+	 }
+	 else
+	 {
+	  document.getElementById("farina").style.visibility='visible';
+	  document.getElementById("risultato").style.visibility='visible';
+	  document.getElementById("risultato").innerHTML = " ";
+	  document.getElementById("num_1").value = "0";
+	  document.getElementById("num_2").value = "0";
+	  document.getElementById("num_3").value = "0";
+	 }
+ }
 </script>
 <style>
 .bordo{
@@ -34,6 +76,7 @@
 
 }
 .input{
+  
    border-style: solid;
    border-color: #1BEBEA;
    border-radius: 6px;
@@ -51,6 +94,7 @@
 { 
    color:#FFBC0A;
 }
+
 </style>
 </head>
 
@@ -59,12 +103,24 @@
 <h1 class="titolo">
  Calcolo quantità
 </h1>
-
+<select id="mySelect" onchange="changeDropdown(this.value);">
+   <option value="D"> Dosi </option>
+   <option value="R"> Raddoppia </option>
+   
+   </select>
+ 
  <h3 class="testo">Grammi prodotto:</h3> <input class="input" type="number" id="num_1" placeholder="50"> 
+ 
+ <div id="farina">
  <h3 class="testo">Farina totale:</h3> <input class="input"  type="number" id="num_2" placeholder="1600"> 
+ 
  <h3 class="testo">Farina totale 2:</h3> <input class="input"  type="number" id="num_3" placeholder="1240"> 
+ </div>
+ 
  <br><br>
+ 
  <h2 style="color: #EBE71B" id="risultato" > </h2>
+ 
  <button class="bottone" onclick="calcola()" id="clicca" > CLICCA </button>
  
 </div>
