@@ -891,14 +891,14 @@
             if (op) el.dataset.op = op;
             if (varname) el.dataset.varname = varname;
 
-            if (type === 'number') el.innerHTML = `<input type="number" value="10">`;
-            else if (type === 'text') el.innerHTML = `🔤 <input type="text" value="Musica!" style="width:120px">`;
-            else if (type === 'input') el.innerHTML = `❓ Chiedi Numero`;
+            if (type === 'number') el.innerHTML = `<span>🔢</span> <input type="number" value="10">`;
+            else if (type === 'text') el.innerHTML = `<span>🔤</span> <input type="text" value="Musica!" style="width:120px">`;
+            else if (type === 'input') el.innerHTML = `<span>❓</span> Chiedi Numero`;
             else if (type === 'bracket') el.innerHTML = `( <div class="slot" data-slot="inner"></div> )`;
             else if (type === 'compare') el.innerHTML = `<div class="slot" data-slot="left"></div> ${op === '>' ? 'è maggiore di' : 'è uguale a'} <div class="slot" data-slot="right"></div>`;
             else if (type === 'setvar') el.innerHTML = `<span>📦</span> INSERISCI <div class="slot" data-slot="val"></div> IN [ ${varname || '❓'} ]`;
             else if (type === 'getvar') el.innerHTML = `<span>🏷️</span> Variabile [ ${varname || '❓'} ]`;
-            else if (type === 'message') el.innerHTML = `📢 Dì <div class="slot" data-slot="msg"></div>`;
+            else if (type === 'message') el.innerHTML = `<span>📢</span> Dì <div class="slot" data-slot="msg"></div>`;
             else if (type === 'comment') {
                 el.innerHTML = `📝 <b>NOTE:</b><br><textarea placeholder="Scrivi qui la tua spiegazione..."></textarea>`;
                 el.style.width = '250px';
@@ -931,10 +931,13 @@
 
         function makeDraggable(el) {
             let dragging = false, offset = { x: 0, y: 0 };
+            let currentSlot = null;
             const trash = document.getElementById('trash-zone');
 
             const onStart = (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                // Su mobile permettiamo il drag anche se si tocca l'input (usiamo le icone/handle come aiuto)
+                // Ma su PC evitiamo per permettere la selezione del testo nell'input
+                if ((e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') && e.type === 'mousedown') return;
 
                 const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
@@ -971,6 +974,21 @@
                 el.style.left = x + 'px';
                 el.style.top = y + 'px';
 
+                // Check slot collision for highlighting
+                el.style.pointerEvents = 'none'; // Detect what's under the block
+                const targetUnder = document.elementFromPoint(clientX, clientY);
+                el.style.pointerEvents = 'auto';
+
+                const slot = targetUnder ? targetUnder.closest('.slot') : null;
+                if (slot && slot !== el.parentElement && !el.contains(slot)) {
+                    if (currentSlot) currentSlot.classList.remove('drag-over');
+                    currentSlot = slot;
+                    currentSlot.classList.add('drag-over');
+                } else {
+                    if (currentSlot) currentSlot.classList.remove('drag-over');
+                    currentSlot = null;
+                }
+
                 // Check trash collision
                 const tr = trash.getBoundingClientRect();
                 if (clientX > tr.left && clientX < tr.right && clientY > tr.top && clientY < tr.bottom) {
@@ -993,6 +1011,14 @@
                 if (clientX > tr.left && clientX < tr.right && clientY > tr.top && clientY < tr.bottom) {
                     el.remove();
                     trash.classList.remove('hover');
+                } else if (currentSlot) {
+                    // Drop into slot
+                    currentSlot.classList.remove('drag-over');
+                    currentSlot.innerHTML = '';
+                    currentSlot.appendChild(el);
+                    el.style.left = '0';
+                    el.style.top = '0';
+                    currentSlot = null;
                 }
             };
 
