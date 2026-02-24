@@ -1,133 +1,944 @@
-<html>
+<!DOCTYPE html>
+<html lang="it">
+
 <head>
-<title>Prova</title>
-<script type="text/javascript">
- function calcola()
- {
-  var grammi;
-  var farina_g;
-  var farina_c;
-  var calcola;
-  var risultato;
-  grammi = document.getElementById("num_1").value;
-  farina_g = document.getElementById("num_2").value;
-  farina_c = document.getElementById("num_3").value;
-  calcola = document.getElementById("mySelect").value;
-  
-  if(calcola == "D"){
-  
-  if(grammi <= 0 || farina_g <= 0 || farina_c <=0)
-  {
-   
-     
-    alert("Inserire valori");
-	
-  }
-  else{
-      //Dosi
-   risultato = (grammi*1)/(farina_g*1)*(farina_c*1);
-    if(risultato < 1){
-	  alert("Rinserire valori");
-	} 
- else{
-      document.getElementById("risultato").innerHTML = +" "+ risultato+" "+"g";
-     }
-  }
- 
-  }else
-  {
-     //Raddoppia
-     
-     risultato = (grammi*1)*2;
-	  if( grammi == 0)
-	  {
-	    alert("inserire valori");
-	  }
-	  else
-	  {
-	     document.getElementById("risultato").innerHTML = +" "+ risultato+" "+"g";
-	
-	  }
-  }
-}
- function changeDropdown()
- {
-     var state= document.getElementById("mySelect").value;
-	 if( state == "R")
-	 {
-	    document.getElementById("num_1").value = "0";
-	    document.getElementById("farina").style.visibility='hidden';
-		document.getElementById("risultato").innerHTML = " ";
-		
-	 }
-	 else
-	 {
-	  document.getElementById("farina").style.visibility='visible';
-	  document.getElementById("risultato").style.visibility='visible';
-	  document.getElementById("risultato").innerHTML = " ";
-	  document.getElementById("num_1").value = "0";
-	  document.getElementById("num_2").value = "0";
-	  document.getElementById("num_3").value = "0";
-	 }
- }
-</script>
-<style>
-.bordo{
-  text-align: center;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathBlocks 5.0 - Variabili e Algoritmi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4c6ef5;
+            --operator: #ff922b;
+            --number: #51cf66;
+            --bracket: #be4bdb;
+            --logic: #f06595;
+            --input: #22b8cf;
+            --variable: #fcc419;
+            --bg: #f8f9fa;
+            --text: #212529;
+            --font-main: 'Outfit', sans-serif;
+            --radius: 12px;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
 
-}
-.input{
-  
-   border-style: solid;
-   border-color: #1BEBEA;
-   border-radius: 6px;
-    padding: 14px 40px;
-}
-.bottone{
-  border-radius: 9px;
-  background-color: #99FF42;
-  padding: 14px 40px;
-}
-.titolo{
-  color:#F5BB4E;
-}
-.testo
-{ 
-   color:#FFBC0A;
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-</style>
+        body {
+            font-family: var(--font-main);
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        aside {
+            width: 320px;
+            background: #fff;
+            border-right: 2px solid #e9ecef;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .category-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #adb5bd;
+            font-weight: 800;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .palette-item {
+            padding: 10px 15px;
+            border-radius: var(--radius);
+            color: white;
+            font-weight: 700;
+            cursor: grab;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .palette-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .palette-item.p-num {
+            background: var(--number);
+        }
+
+        .palette-item.p-op {
+            background: var(--operator);
+        }
+
+        .palette-item.p-bracket {
+            background: var(--bracket);
+        }
+
+        .palette-item.p-input {
+            background: var(--input);
+        }
+
+        .palette-item.p-logic {
+            background: var(--logic);
+        }
+
+        .palette-item.p-var {
+            background: var(--variable);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-add-var {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 20px;
+            height: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Workspace */
+        main {
+            flex-grow: 1;
+            position: relative;
+            background: radial-gradient(#dee2e6 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+            overflow: auto;
+        }
+
+        #drop-area {
+            min-height: 2500px;
+            min-width: 2500px;
+            position: relative;
+            padding: 100px;
+        }
+
+        /* Blocks */
+        .block {
+            padding: 12px 20px;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            color: #101113;
+            font-weight: 800;
+            cursor: move;
+            position: absolute;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(0, 0, 0, 0.05);
+            white-space: nowrap;
+            transition: transform 0.2s, box-shadow 0.2s;
+            min-width: fit-content;
+        }
+
+        /* Essential: Fix for nested blocks overlapping labels */
+        .slot .block {
+            position: relative !important;
+            left: 0 !important;
+            top: 0 !important;
+            box-shadow: none;
+            /* Cleaner look when nested */
+        }
+
+        .block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .block.b-num,
+        .block.b-tex {
+            background: var(--number);
+            border-radius: 40px;
+        }
+
+        .block.b-op {
+            background: var(--operator);
+        }
+
+        .block.b-bra {
+            background: var(--bracket);
+        }
+
+        .block.b-inp {
+            background: var(--input);
+        }
+
+        .block.b-log {
+            background: transparent;
+            box-shadow: none;
+            border: none;
+            padding: 0 0 0 30px;
+            /* Space for the spine */
+            min-width: 500px;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            /* No gaps between logic rows to keep spine solid */
+        }
+
+        .block.b-log::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: #c2185b;
+            /* Solid dark pink spine */
+            border-radius: 15px 0 0 15px;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .logic-row {
+            display: flex;
+            align-items: center;
+            background: var(--logic);
+            padding: 20px 30px;
+            margin-bottom: 6px;
+            gap: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            color: #fff;
+            /* White text for logic rows */
+            border-radius: 0 15px 15px 0;
+            min-width: 500px;
+        }
+
+        .logic-row.row-se {
+            border-top-left-radius: 15px;
+        }
+
+        .logic-row.row-altrimenti {
+            border-bottom-left-radius: 15px;
+            margin-bottom: 0;
+        }
+
+        .logic-label {
+            width: 140px;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+            font-weight: 900;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .block.b-mes {
+            background: #4dabf7;
+            color: white;
+        }
+
+        .block.b-com {
+            background: #fff9db !important;
+            border: 1px solid #ffec99 !important;
+            color: #495057 !important;
+            min-width: 250px;
+            min-height: 100px;
+            padding: 15px;
+            font-size: 0.95rem;
+            font-style: italic;
+            border-radius: 4px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .block.b-com textarea {
+            background: transparent;
+            border: none;
+            width: 100%;
+            height: 80px;
+            resize: none;
+            font-family: 'Inter', sans-serif;
+            font-style: italic;
+            outline: none;
+            color: #495057;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .block.b-set {
+            background: var(--variable);
+            border-radius: 12px;
+        }
+
+        .block.b-get {
+            background: var(--variable);
+            border-radius: 30px;
+            padding: 10px 25px;
+        }
+
+        .block input {
+            width: 50px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            color: #101113;
+            font-weight: 800;
+            padding: 6px;
+            outline: none;
+            text-align: center;
+        }
+
+        .slot {
+            min-width: 60px;
+            min-height: 48px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px dashed rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            transition: all 0.2s;
+            vertical-align: middle;
+        }
+
+        .slot.drag-over {
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+
+        /* Execution State */
+        #visualizer {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 480px;
+            height: 400px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            border: 5px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .vis-header {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            height: 50px;
+        }
+
+        .vis-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .vis-content {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-right: 1px solid #eee;
+        }
+
+        .var-watch {
+            width: 140px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 1px solid #eee;
+        }
+
+        .var-item {
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            font-family: monospace;
+            color: #495057;
+        }
+
+        .var-val {
+            font-weight: 800;
+            color: var(--variable);
+            display: block;
+            font-size: 1rem;
+        }
+
+        .history-step {
+            background: #f1f3f5;
+            padding: 8px 12px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--operator);
+            font-size: 0.9rem;
+        }
+
+        .history-step.logic-step {
+            border-left-color: var(--logic);
+        }
+
+        .history-step.input-step {
+            border-left-color: var(--input);
+        }
+
+        .history-step.var-step {
+            border-left-color: var(--variable);
+            background: #fff9db;
+        }
+
+        .history-step.error-step {
+            border-left-color: #fa5252;
+            background: #fff5f5;
+            color: #c92a2a;
+            font-weight: 800;
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 24px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        /* General UI */
+        .top-controls {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            z-index: 50;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+            font-size: 0.9rem;
+        }
+
+        .btn-run {
+            background: #5c7cfa;
+            color: white;
+        }
+
+        .btn-clear {
+            background: #fa5252;
+            color: white;
+        }
+
+        @keyframes highlight {
+            0% {
+                box-shadow: 0 0 0px var(--primary);
+                outline: 0px solid var(--primary);
+            }
+
+            50% {
+                transform: scale(1.08);
+                box-shadow: 0 0 40px var(--primary);
+                outline: 4px solid var(--primary);
+            }
+
+            100% {
+                box-shadow: 0 0 0px var(--primary);
+                outline: 0px solid var(--primary);
+            }
+        }
+
+        .executing {
+            animation: highlight 0.6s ease;
+        }
+
+        #trash-zone {
+            width: 50px;
+            height: 50px;
+            background: #fa5252;
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(250, 82, 82, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        #trash-zone.hover {
+            transform: scale(1.1);
+            background: #ff6b6b;
+            border-color: white;
+            box-shadow: 0 8px 25px rgba(250, 82, 82, 0.4);
+        }
+    </style>
 </head>
 
 <body>
-<div class="bordo">
-<h1 class="titolo">
- Calcolo quantità
-</h1>
-<select id="mySelect" onchange="changeDropdown(this.value);">
-   <option value="D"> Dosi </option>
-   <option value="R"> Raddoppia </option>
-   
-   </select>
- 
- <h3 class="testo">Grammi prodotto:</h3> <input class="input" type="number" id="num_1" placeholder="50"> 
- 
- <div id="farina">
- <h3 class="testo">Farina totale:</h3> <input class="input"  type="number" id="num_2" placeholder="1600"> 
- 
- <h3 class="testo">Farina totale 2:</h3> <input class="input"  type="number" id="num_3" placeholder="1240"> 
- </div>
- 
- <br><br>
- 
- <h2 style="color: #EBE71B" id="risultato" > </h2>
- 
- <button class="bottone" onclick="calcola()" id="clicca" > CLICCA </button>
- 
-</div>
 
+    <!-- Generic Modal -->
+    <div id="app-modal" class="modal">
+        <div class="modal-box">
+            <h3 id="modal-title">Titolo</h3>
+            <p id="modal-msg" style="margin-bottom: 15px; color: #868e96;"></p>
+            <input type="text" id="modal-field">
+            <button class="btn btn-run" id="modal-ok" style="width: 100%;">Conferma</button>
+        </div>
+    </div>
 
+    <aside>
+        <h2 style="color: var(--primary); font-size: 1.6rem; margin-bottom: 10px;">MathBlocks 5.0 🚀</h2>
 
+        <div class="category-title">Variabili <button class="btn-add-var" onclick="showVarDialog()">+</button></div>
+        <div id="var-palette" style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="palette-item p-var" draggable="true" data-type="setvar" data-varname="X">
+                <span>📦</span> Porta [X] a...
+            </div>
+            <div class="palette-item p-var" draggable="true" data-type="getvar" data-varname="X">
+                <span>🏷️</span> Variabile [X]
+            </div>
+        </div>
 
+        <div class="category-title">Input & Valori</div>
+        <div class="palette-item p-num" draggable="true" data-type="number"><span>🔢</span> Numero</div>
+        <div class="palette-item p-num" draggable="true" data-type="text"><span>🔤</span> Testo</div>
+        <div class="palette-item p-input" draggable="true" data-type="input"><span>❓</span> Chiedi Numero</div>
+        <div class="palette-item p-msg" draggable="true" data-type="message"><span>📢</span> Messaggio</div>
+        <div class="palette-item p-com" draggable="true" data-type="comment"><span>📝</span> Commento</div>
+
+        <div class="category-title">Operazioni</div>
+        <div class="palette-item p-op" draggable="true" data-type="operator" data-op="+"><span>➕</span> Somma</div>
+        <div class="palette-item p-op" draggable="true" data-type="operator" data-op="*"><span>✖️</span> Moltiplica
+        </div>
+        <div class="palette-item p-op" draggable="true" data-type="operator" data-op="/"><span>➗</span> Dividi</div>
+        <div class="palette-item p-bracket" draggable="true" data-type="bracket"><span>( )</span> Parentesi</div>
+
+        <div class="category-title">Logica</div>
+        <div class="palette-item p-logic" draggable="true" data-type="compare" data-op=">"><span>🆚</span> Maggiore ( >
+            )</div>
+        <div class="palette-item p-logic" draggable="true" data-type="ifelse"><span>🤔</span> SE... ALLORA...</div>
+    </aside>
+
+    <main>
+        <div class="top-controls">
+            <div id="trash-zone">🗑️</div>
+            <button class="btn btn-clear" onclick="clearWorkspace()">Svuota</button>
+            <button class="btn btn-run" onclick="runAll()">Avvia Algoritmo ⚡</button>
+        </div>
+
+        <div id="drop-area"></div>
+
+        <div id="visualizer">
+            <div class="vis-header"><span>Esecuzione</span> <span id="run-status"
+                    style="font-size: 0.7rem; opacity: 0.8;">In attesa...</span></div>
+            <div class="vis-container">
+                <div class="vis-content" id="vis-target"></div>
+                <div class="var-watch" id="var-watch">
+                    <p style="font-size: 0.7rem; font-weight: 800; color: #adb5bd; margin-bottom: 10px;">MEMORIA</p>
+                </div>
+            </div>
+        </div>
+        <div id="trash-zone">🗑️</div>
+    </main>
+
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const visTarget = document.getElementById('vis-target');
+        const varWatch = document.getElementById('var-watch');
+        const varPalette = document.getElementById('var-palette');
+        const modal = document.getElementById('app-modal');
+        const modalField = document.getElementById('modal-field');
+
+        let variables = {};
+        let variableNames = [];
+        let initializedVariables = new Set();
+
+        // Modal Logic
+        function showPrompt(title, msg, type = "text") {
+            return new Promise(resolve => {
+                modal.style.display = 'flex';
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-msg').innerText = msg;
+                modalField.type = type;
+                modalField.value = "";
+                modalField.focus();
+                const clean = () => {
+                    modal.style.display = 'none';
+                    document.getElementById('modal-ok').removeEventListener('click', handler);
+                };
+                const handler = () => {
+                    const val = modalField.value;
+                    clean();
+                    resolve(val);
+                };
+                document.getElementById('modal-ok').addEventListener('click', handler);
+            });
+        }
+
+        async function showVarDialog() {
+            const name = await showPrompt("Nuova Variabile", "Come vuoi chiamare la tua variabile?");
+            if (name && !variableNames.includes(name)) {
+                variableNames.push(name);
+                variables[name] = 0;
+                updateVarPalette();
+            }
+        }
+
+        // Centralized Drag Start Handler
+        function handleDragStart(e) {
+            const target = e.target.closest('[draggable="true"]');
+            if (!target) return;
+
+            e.dataTransfer.setData('type', target.dataset.type || '');
+            e.dataTransfer.setData('op', target.dataset.op || '');
+            e.dataTransfer.setData('varname', target.dataset.varname || '');
+
+            // If dragging an existing block, mark it for potential moving
+            if (target.classList.contains('block')) {
+                target.classList.add('is-dragging-origin');
+            }
+        }
+
+        // Initialize Palette Drags
+        function initPaletteDrags() {
+            document.querySelectorAll('.palette-item').forEach(item => {
+                item.removeEventListener('dragstart', handleDragStart); // Remove existing to prevent duplicates
+                item.addEventListener('dragstart', handleDragStart);
+            });
+        }
+
+        function updateVarPalette() {
+            varPalette.innerHTML = variableNames.map(name => `
+                <div class="palette-item p-var" draggable="true" data-type="setvar" data-varname="${name}"><span>📦</span> INSERISCI ... IN [${name}]</div>
+                <div class="palette-item p-var" draggable="true" data-type="getvar" data-varname="${name}"><span>🏷️</span> Variabile [${name}]</div>
+            `).join('');
+            initPaletteDrags();
+        }
+
+        // Drag & Drop
+        dropArea.addEventListener('dragover', e => e.preventDefault());
+        dropArea.addEventListener('drop', e => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            const op = e.dataTransfer.getData('op');
+            const varname = e.dataTransfer.getData('varname');
+            const slot = e.target.closest('.slot');
+
+            const newBlock = createBlock(type, op, varname, !!slot);
+            if (slot) { slot.innerHTML = ''; slot.appendChild(newBlock); }
+            else {
+                const rect = dropArea.getBoundingClientRect();
+                newBlock.style.left = (e.clientX - rect.left + dropArea.scrollLeft - 50) + 'px';
+                newBlock.style.top = (e.clientY - rect.top + dropArea.scrollTop - 20) + 'px';
+                dropArea.appendChild(newBlock);
+            }
+        });
+
+        function createBlock(type, op, varname, isNested = false) {
+            const el = document.createElement('div');
+            el.className = `block b-${type.substring(0, 3)}`;
+            el.dataset.type = type;
+            if (op) el.dataset.op = op;
+            if (varname) el.dataset.varname = varname;
+
+            if (type === 'number') el.innerHTML = `<input type="number" value="10">`;
+            else if (type === 'text') el.innerHTML = `🔤 <input type="text" value="Musica!" style="width:120px">`;
+            else if (type === 'input') el.innerHTML = `❓ Chiedi Numero`;
+            else if (type === 'bracket') el.innerHTML = `( <div class="slot" data-slot="inner"></div> )`;
+            else if (type === 'compare') el.innerHTML = `<div class="slot" data-slot="left"></div> ${op === '>' ? 'è maggiore di' : 'è uguale a'} <div class="slot" data-slot="right"></div>`;
+            else if (type === 'setvar') el.innerHTML = `<span>📦</span> INSERISCI <div class="slot" data-slot="val"></div> IN [ ${varname || '❓'} ]`;
+            else if (type === 'getvar') el.innerHTML = `<span>🏷️</span> Variabile [ ${varname || '❓'} ]`;
+            else if (type === 'message') el.innerHTML = `📢 Dì <div class="slot" data-slot="msg"></div>`;
+            else if (type === 'comment') {
+                el.innerHTML = `📝 <b>NOTE:</b><br><textarea placeholder="Scrivi qui la tua spiegazione..."></textarea>`;
+                el.style.width = '250px';
+            }
+            else if (type === 'ifelse') {
+                el.innerHTML = `
+                    <div class="logic-row row-se"><span class="logic-label">👉 SE</span> <div class="slot" data-slot="cond"></div></div>
+                    <div class="logic-row row-allora"><span class="logic-label">✅ ALLORA</span> <div class="slot" data-slot="then"></div></div>
+                    <div class="logic-row row-altrimenti"><span class="logic-label">❌ ALTRIMENTI</span> <div class="slot" data-slot="else"></div></div>
+                `;
+                el.style.flexDirection = 'column'; el.style.alignItems = 'flex-start';
+                el.style.padding = '0';
+            } else {
+                let symbol = op;
+                if (op === '*') symbol = '✖️';
+                if (op === '/') symbol = '➗';
+                if (op === '+') symbol = '➕';
+                if (op === '-') symbol = '➖';
+                el.innerHTML = `<div class="slot" data-slot="left"></div> <span style="font-size:1.4rem; margin:0 15px">${symbol}</span> <div class="slot" data-slot="right"></div>`;
+            }
+
+            makeDraggable(el);
+            el.querySelectorAll('.slot').forEach(slot => {
+                slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('drag-over'); });
+                slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+                slot.addEventListener('drop', () => slot.classList.remove('drag-over'));
+            });
+            return el;
+        }
+
+        function makeDraggable(el) {
+            let dragging = false, offset = { x: 0, y: 0 };
+            const trash = document.getElementById('trash-zone');
+
+            el.addEventListener('mousedown', e => {
+                if (e.target.tagName === 'INPUT') return;
+
+                // If nested, detach it and move it to the dropArea at its current screen position
+                if (el.parentElement.classList.contains('slot')) {
+                    const rect = el.getBoundingClientRect();
+                    const areaRect = dropArea.getBoundingClientRect();
+                    el.parentElement.innerHTML = ''; // Empty the slot
+
+                    el.style.left = (rect.left - areaRect.left + dropArea.scrollLeft) + 'px';
+                    el.style.top = (rect.top - areaRect.top + dropArea.scrollTop) + 'px';
+                    dropArea.appendChild(el);
+                }
+
+                dragging = true; const rect = el.getBoundingClientRect();
+                offset.x = e.clientX - rect.left; offset.y = e.clientY - rect.top;
+                el.style.zIndex = 1000; e.stopPropagation();
+            });
+            window.addEventListener('mousemove', e => {
+                if (!dragging) return;
+                const rect = dropArea.getBoundingClientRect();
+                const x = e.clientX - rect.left - offset.x + dropArea.scrollLeft;
+                const y = e.clientY - rect.top - offset.y + dropArea.scrollTop;
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+
+                // Check trash collision
+                const tr = trash.getBoundingClientRect();
+                if (e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom) {
+                    trash.classList.add('hover');
+                } else {
+                    trash.classList.remove('hover');
+                }
+            });
+            window.addEventListener('mouseup', e => {
+                if (!dragging) return;
+                dragging = false;
+                el.style.zIndex = '';
+
+                const tr = trash.getBoundingClientRect();
+                if (e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom) {
+                    el.remove();
+                    trash.classList.remove('hover');
+                }
+            });
+        }
+
+        // Execution
+        async function evaluate(block) {
+            if (!block) return 0;
+            const target = block.classList.contains('block') ? block : block.querySelector('.block');
+
+            if (!target || target.dataset.type === 'comment') return 0;
+            target.classList.add('executing');
+            await new Promise(r => setTimeout(r, 600));
+
+            let res = 0;
+            const type = target.dataset.type;
+
+            try {
+                if (type === 'number') res = parseFloat(target.querySelector('input').value) || 0;
+                else if (type === 'text') res = target.querySelector('input').value;
+                else if (type === 'input') {
+                    const val = await showPrompt("Input", "Inserisci un numero:", "number");
+                    res = parseFloat(val) || 0;
+                    addStep("Input Utente", res, "input-step");
+                }
+                else if (type === 'getvar') {
+                    const vName = target.dataset.varname;
+                    if (!initializedVariables.has(vName)) {
+                        addStep(`❌ Errore: ${vName}`, "Non configurata!", "error-step");
+                    }
+                    res = variables[vName] || 0;
+                    addStep(`Leggi ${vName}`, res, "var-step");
+                }
+                else if (type === 'setvar') {
+                    const valSlot = target.querySelector('[data-slot="val"]');
+                    res = await evaluate(valSlot.querySelector('.block'));
+                    variables[target.dataset.varname] = res;
+                    initializedVariables.add(target.dataset.varname);
+                    addStep(`Inserisci ${res} in ${target.dataset.varname}`, res, "var-step");
+                    updateVarWatch();
+                } else if (type === 'bracket') {
+                    res = await evaluate(target.querySelector('[data-slot="inner"]').querySelector('.block'));
+                } else if (type === 'compare') {
+                    const v1 = await evaluate(target.querySelector('[data-slot="left"]').querySelector('.block'));
+                    const v2 = await evaluate(target.querySelector('[data-slot="right"]').querySelector('.block'));
+                    const op = target.dataset.op;
+                    res = (op === '>') ? (v1 > v2) : (v1 === v2);
+                    addStep(`Test: ${v1} ${op} ${v2}`, res ? "VERO" : "FALSO", "logic-step");
+                } else if (type === 'ifelse') {
+                    const cond = await evaluate(target.querySelector('[data-slot="cond"]').querySelector('.block'));
+                    const slot = cond ? 'then' : 'else';
+                    res = await evaluate(target.querySelector(`[data-slot="${slot}"]`).querySelector('.block'));
+                } else if (type === 'message') {
+                    const msgSlot = target.querySelector('[data-slot="msg"]');
+                    const block = msgSlot.querySelector('.block');
+                    if (block) {
+                        res = await evaluate(block);
+                    } else {
+                        res = "???";
+                    }
+                    addStep("📢 Messaggio", res, "input-step");
+                } else if (target.dataset.type === 'operator') {
+                    const v1 = await evaluate(target.querySelector('[data-slot="left"]').querySelector('.block'));
+                    const v2 = await evaluate(target.querySelector('[data-slot="right"]').querySelector('.block'));
+                    switch (target.dataset.op) {
+                        case '+': res = v1 + v2; break;
+                        case '-': res = v1 - v2; break;
+                        case '*': res = v1 * v2; break;
+                        case '/': res = v2 !== 0 ? v1 / v2 : 0; break;
+                    }
+                    addStep(`${v1} ${target.dataset.op} ${v2}`, res);
+                }
+            } catch (e) {
+                console.error("Eval error", e);
+                res = 0;
+            }
+
+            target.classList.remove('executing');
+            return res;
+        }
+
+        function addStep(l, r, c = "") {
+            const s = document.createElement('div');
+            s.className = `history-step ${c}`;
+            s.innerHTML = `<span>${l}</span> <span class="step-result">${typeof r === 'number' ? Math.round(r * 100) / 100 : r}</span>`;
+            visTarget.appendChild(s); visTarget.scrollTop = visTarget.scrollHeight;
+        }
+
+        function updateVarWatch() {
+            varWatch.innerHTML = '<p style="font-size: 0.7rem; font-weight: 800; color: #adb5bd; margin-bottom: 10px;">MEMORIA</p>';
+            for (let k in variables) {
+                const item = document.createElement('div'); item.className = 'var-item';
+                item.innerHTML = `${k}: <span class="var-val">${variables[k]}</span>`;
+                varWatch.appendChild(item);
+            }
+        }
+
+        async function runAll() {
+            visTarget.innerHTML = "";
+            // Reset variables to initial state for a fresh run
+            for (let k in variables) variables[k] = 0;
+            initializedVariables.clear();
+            updateVarWatch();
+
+            const roots = Array.from(dropArea.children)
+                .filter(c => c.classList.contains('block'))
+                .sort((a, b) => {
+                    const topA = parseFloat(a.style.top) || 0;
+                    const topB = parseFloat(b.style.top) || 0;
+                    // Se la differenza di altezza è minima (< 30px), considerali sulla stessa riga
+                    if (Math.abs(topA - topB) < 30) {
+                        return (parseFloat(a.style.left) || 0) - (parseFloat(b.style.left) || 0);
+                    }
+                    return topA - topB;
+                });
+
+            if (!roots.length) return;
+            document.getElementById('run-status').innerText = "In corso...";
+
+            let finalResult = 0;
+            for (const root of roots) {
+                finalResult = await evaluate(root);
+            }
+
+            document.getElementById('run-status').innerText = "Finito!";
+            const f = document.createElement('div');
+            f.style = "margin-top:15px; text-align:center; font-weight:900; font-size:1.8rem; color:var(--primary);";
+            f.innerHTML = `FINALE: ${finalResult}`;
+            visTarget.appendChild(f);
+        }
+
+        function clearWorkspace() { dropArea.innerHTML = ''; visTarget.innerHTML = ''; }
+
+        // Initialize Everything
+        window.onload = () => {
+            // Inizializza con variabili vuote - lo studente dovrà crearle!
+            variableNames = [];
+            variables = {};
+            updateVarPalette();
+            updateVarWatch();
+
+            // SFIDA: Il Concerto dell'Orchestra! 🎶
+            const note = createBlock('comment');
+            note.style.left = '50px'; note.style.top = '10px';
+            note.style.width = '350px';
+            note.querySelector('textarea').style.height = '180px';
+            note.querySelector('textarea').value = "IL PROBLEMA: In orchestra ci sono 3 Tamburi e 2 Trombe.\n\nSFIDA: Quanti strumenti ci sono in tutto?\n1. Clicca [+] e crea 'Tamburi' e 'Trombe'.\n2. Usa i blocchi 'Inserisci ... in' per impostare i numeri (3 e 2).\n3. Trascina i blocchi 'Variabile [Tamburi]' e 'Variabile [Trombe]' nella somma.\n4. Premi Avvia! ⚡";
+            dropArea.appendChild(note);
+
+            // SCHELETRO DELL'ALGORITMO
+            // 1. Messaggio del risultato: Messaggio [ ( ) + ( ) ]
+            const msg = createBlock('message');
+            msg.style.left = '80px'; msg.style.top = '250px';
+            dropArea.appendChild(msg);
+
+            const op = createBlock('operator', '+');
+            msg.querySelector('[data-slot="msg"]').appendChild(op);
+        };
+    </script>
 </body>
+
 </html>
