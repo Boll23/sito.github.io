@@ -686,7 +686,7 @@
 
         <div id="drop-area"></div>
 
-        <div id="visualizer" class="minimized">
+        <div id="visualizer">
             <div class="vis-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span>Esecuzione</span>
@@ -1065,6 +1065,13 @@
 
         // Initialize Everything
         window.onload = () => {
+            // Minimize visualizer by default ONLY on mobile
+            if (window.innerWidth <= 768) {
+                toggleVisualizer('close');
+            } else {
+                toggleVisualizer('open');
+            }
+
             // Inizializza con variabili vuote - lo studente dovrà crearle!
             variableNames = [];
             variables = {};
