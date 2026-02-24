@@ -96,6 +96,7 @@
             box-shadow: var(--shadow);
             transition: transform 0.2s;
             font-size: 0.9rem;
+            touch-action: none;
         }
 
         .palette-item:hover {
@@ -173,6 +174,7 @@
             white-space: nowrap;
             transition: transform 0.2s, box-shadow 0.2s;
             min-width: fit-content;
+            touch-action: none;
         }
 
         /* Essential: Fix for nested blocks overlapping labels */
@@ -782,8 +784,37 @@
         // Initialize Palette Drags
         function initPaletteDrags() {
             document.querySelectorAll('.palette-item').forEach(item => {
-                item.removeEventListener('dragstart', handleDragStart); // Remove existing to prevent duplicates
+                item.removeEventListener('dragstart', handleDragStart);
                 item.addEventListener('dragstart', handleDragStart);
+
+                // Supporto Touch per la Palette (Mobile)
+                item.addEventListener('touchstart', (e) => {
+                    const type = item.dataset.type;
+                    const op = item.dataset.op;
+                    const varname = item.dataset.varname;
+                    const touch = e.touches[0];
+
+                    const newBlock = createBlock(type, op, varname, false);
+                    dropArea.appendChild(newBlock);
+
+                    const areaRect = dropArea.getBoundingClientRect();
+                    newBlock.style.left = (touch.clientX - areaRect.left + dropArea.scrollLeft - 50) + 'px';
+                    newBlock.style.top = (touch.clientY - areaRect.top + dropArea.scrollTop - 20) + 'px';
+
+                    // Chiudi la sidebar su mobile se aperta
+                    if (window.innerWidth <= 768 && document.getElementById('sidebar-menu').classList.contains('open')) {
+                        toggleSidebar();
+                    }
+
+                    // Avvia manualmente il trascinamento sul nuovo blocco con un piccolo delay
+                    setTimeout(() => {
+                        if (newBlock._dragStart) {
+                            newBlock._dragStart(e);
+                        }
+                    }, 0);
+
+                    if (e.cancelable) e.preventDefault();
+                }, { passive: false });
             });
         }
 
