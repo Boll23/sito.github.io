@@ -35,6 +35,7 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
         /* Sidebar */
@@ -46,8 +47,28 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            z-index: 10;
+            z-index: 100;
             overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        #sidebar-toggle {
+            display: none;
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            font-size: 1.5rem;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
 
         .category-title {
@@ -329,6 +350,8 @@
             right: 30px;
             width: 480px;
             height: 400px;
+            max-width: 90vw;
+            max-height: 50vh;
             background: white;
             border-radius: 24px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
@@ -336,7 +359,8 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            z-index: 100;
+            z-index: 1000;
+            transition: transform 0.3s ease, height 0.3s ease;
         }
 
         .vis-header {
@@ -526,6 +550,41 @@
             border-color: white;
             box-shadow: 0 8px 25px rgba(250, 82, 82, 0.4);
         }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            aside {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            }
+
+            aside.open {
+                transform: translateX(0);
+            }
+
+            #sidebar-toggle {
+                display: flex;
+            }
+
+            .top-controls {
+                left: 25px;
+                right: 25px;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+
+            #visualizer {
+                bottom: 100px;
+                right: 15px;
+                left: 15px;
+                width: auto;
+                max-width: none;
+            }
+        }
     </style>
 </head>
 
@@ -541,7 +600,9 @@
         </div>
     </div>
 
-    <aside>
+    <button id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+    <aside id="sidebar-menu">
         <h2 style="color: var(--primary); font-size: 1.6rem; margin-bottom: 10px;">MathBlocks 5.0 🚀</h2>
 
         <div class="category-title">Variabili <button class="btn-add-var" onclick="showVarDialog()">+</button></div>
@@ -607,6 +668,13 @@
         let variables = {};
         let variableNames = [];
         let initializedVariables = new Set();
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar-menu');
+            sidebar.classList.toggle('open');
+            const btn = document.getElementById('sidebar-toggle');
+            btn.innerText = sidebar.classList.contains('open') ? '✕' : '☰';
+        }
 
         // Modal Logic
         function showPrompt(title, msg, type = "text") {
@@ -738,8 +806,11 @@
             let dragging = false, offset = { x: 0, y: 0 };
             const trash = document.getElementById('trash-zone');
 
-            el.addEventListener('mousedown', e => {
+            const onStart = (e) => {
                 if (e.target.tagName === 'INPUT') return;
+
+                const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
 
                 // If nested, detach it and move it to the dropArea at its current screen position
                 if (el.parentElement.classList.contains('slot')) {
@@ -752,37 +823,58 @@
                     dropArea.appendChild(el);
                 }
 
-                dragging = true; const rect = el.getBoundingClientRect();
-                offset.x = e.clientX - rect.left; offset.y = e.clientY - rect.top;
-                el.style.zIndex = 1000; e.stopPropagation();
-            });
-            window.addEventListener('mousemove', e => {
+                dragging = true;
+                const rect = el.getBoundingClientRect();
+                offset.x = clientX - rect.left;
+                offset.y = clientY - rect.top;
+                el.style.zIndex = 1000;
+                if (e.cancelable) e.preventDefault();
+                e.stopPropagation();
+            };
+
+            const onMove = (e) => {
                 if (!dragging) return;
+
+                const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+
                 const rect = dropArea.getBoundingClientRect();
-                const x = e.clientX - rect.left - offset.x + dropArea.scrollLeft;
-                const y = e.clientY - rect.top - offset.y + dropArea.scrollTop;
+                const x = clientX - rect.left - offset.x + dropArea.scrollLeft;
+                const y = clientY - rect.top - offset.y + dropArea.scrollTop;
                 el.style.left = x + 'px';
                 el.style.top = y + 'px';
 
                 // Check trash collision
                 const tr = trash.getBoundingClientRect();
-                if (e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom) {
+                if (clientX > tr.left && clientX < tr.right && clientY > tr.top && clientY < tr.bottom) {
                     trash.classList.add('hover');
                 } else {
                     trash.classList.remove('hover');
                 }
-            });
-            window.addEventListener('mouseup', e => {
+                if (e.cancelable) e.preventDefault();
+            };
+
+            const onEnd = (e) => {
                 if (!dragging) return;
                 dragging = false;
                 el.style.zIndex = '';
 
+                const clientX = e.type.startsWith('touch') ? e.changedTouches[0].clientX : e.clientX;
+                const clientY = e.type.startsWith('touch') ? e.changedTouches[0].clientY : e.clientY;
+
                 const tr = trash.getBoundingClientRect();
-                if (e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom) {
+                if (clientX > tr.left && clientX < tr.right && clientY > tr.top && clientY < tr.bottom) {
                     el.remove();
                     trash.classList.remove('hover');
                 }
-            });
+            };
+
+            el.addEventListener('mousedown', onStart);
+            el.addEventListener('touchstart', onStart, { passive: false });
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('mouseup', onEnd);
+            window.addEventListener('touchend', onEnd);
         }
 
         // Execution
