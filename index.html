@@ -797,36 +797,64 @@
             });
         }
 
+        let paletteStartPos = null;
+        let isPaletteDragging = false;
+
         function handlePaletteTouch(e) {
             const item = e.target.closest('.palette-item');
             if (!item) return;
 
-            const type = item.dataset.type;
-            const op = item.dataset.op;
-            const varname = item.dataset.varname;
             const touch = e.touches[0];
+            paletteStartPos = { x: touch.clientX, y: touch.clientY, item: item };
+            isPaletteDragging = false;
 
-            // Create and position new block
-            const newBlock = createBlock(type, op, varname, false);
-            dropArea.appendChild(newBlock);
+            const onMove = (moveEv) => {
+                if (isPaletteDragging) return;
 
-            const areaRect = dropArea.getBoundingClientRect();
-            newBlock.style.left = (touch.clientX - areaRect.left + dropArea.scrollLeft - 50) + 'px';
-            newBlock.style.top = (touch.clientY - areaRect.top + dropArea.scrollTop - 20) + 'px';
+                const moveTouch = moveEv.touches[0];
+                const dx = moveTouch.clientX - paletteStartPos.x;
+                const dy = moveTouch.clientY - paletteStartPos.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
 
-            // Auto-close sidebar on mobile
-            if (window.innerWidth <= 768 && document.getElementById('sidebar-menu').classList.contains('open')) {
-                toggleSidebar();
-            }
+                if (dist > 15) { // Sogli per distinguere scroll da drag
+                    isPaletteDragging = true;
+                    const it = paletteStartPos.item;
+                    const type = it.dataset.type;
+                    const op = it.dataset.op;
+                    const varname = it.dataset.varname;
 
-            // Start drag logic immediately
-            setTimeout(() => {
-                if (newBlock._dragStart) {
-                    newBlock._dragStart(e);
+                    // Crea il blocco solo ora che siamo sicuri sia un drag
+                    const newBlock = createBlock(type, op, varname, false);
+                    dropArea.appendChild(newBlock);
+
+                    const areaRect = dropArea.getBoundingClientRect();
+                    newBlock.style.left = (moveTouch.clientX - areaRect.left + dropArea.scrollLeft - 50) + 'px';
+                    newBlock.style.top = (moveTouch.clientY - areaRect.top + dropArea.scrollTop - 20) + 'px';
+
+                    // Chiudi la sidebar su mobile se aperta
+                    if (window.innerWidth <= 768 && document.getElementById('sidebar-menu').classList.contains('open')) {
+                        toggleSidebar();
+                    }
+
+                    // Passa il controllo al sistema di drag esistente
+                    if (newBlock._dragStart) {
+                        newBlock._dragStart(moveEv);
+                    }
+
+                    cleanup();
                 }
-            }, 0);
+            };
 
-            if (e.cancelable) e.preventDefault();
+            const onEnd = () => cleanup();
+
+            const cleanup = () => {
+                window.removeEventListener('touchmove', onMove);
+                window.removeEventListener('touchend', onEnd);
+                paletteStartPos = null;
+            };
+
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('touchend', onEnd);
         }
 
         function updateVarPalette() {
