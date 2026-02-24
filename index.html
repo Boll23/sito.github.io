@@ -351,7 +351,7 @@
             width: 480px;
             height: 400px;
             max-width: 90vw;
-            max-height: 50vh;
+            max-height: 80vh;
             background: white;
             border-radius: 24px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
@@ -360,7 +360,28 @@
             flex-direction: column;
             overflow: hidden;
             z-index: 1000;
-            transition: transform 0.3s ease, height 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #visualizer.minimized {
+            height: 50px !important;
+            width: 200px !important;
+            transform: translateY(0);
+        }
+
+        #visualizer.minimized .vis-container {
+            display: none;
+        }
+
+        .btn-min {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 800;
         }
 
         .vis-header {
@@ -579,11 +600,16 @@
 
             #visualizer {
                 bottom: 95px;
-                right: 10px;
-                left: 10px;
+                right: 15px;
+                left: 15px;
                 width: auto;
-                height: 30vh;
-                max-width: none;
+                height: 40vh;
+            }
+
+            #visualizer.minimized {
+                width: 160px !important;
+                left: auto;
+                right: 15px;
             }
 
             .var-watch {
@@ -660,9 +686,14 @@
 
         <div id="drop-area"></div>
 
-        <div id="visualizer">
-            <div class="vis-header"><span>Esecuzione</span> <span id="run-status"
-                    style="font-size: 0.7rem; opacity: 0.8;">In attesa...</span></div>
+        <div id="visualizer" class="minimized">
+            <div class="vis-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>Esecuzione</span>
+                    <span id="run-status" style="font-size: 0.7rem; opacity: 0.8;">In attesa...</span>
+                </div>
+                <button class="btn-min" onclick="toggleVisualizer()" id="btn-vis-toggle">Espandi ↗️</button>
+            </div>
             <div class="vis-container">
                 <div class="vis-content" id="vis-target"></div>
                 <div class="var-watch" id="var-watch">
@@ -690,6 +721,16 @@
             sidebar.classList.toggle('open');
             const btn = document.getElementById('sidebar-toggle');
             btn.innerText = sidebar.classList.contains('open') ? '✕' : '☰';
+        }
+
+        function toggleVisualizer(force) {
+            const vis = document.getElementById('visualizer');
+            const btn = document.getElementById('btn-vis-toggle');
+            if (force === 'open') vis.classList.remove('minimized');
+            else if (force === 'close') vis.classList.add('minimized');
+            else vis.classList.toggle('minimized');
+
+            btn.innerText = vis.classList.contains('minimized') ? 'Espandi ↗️' : 'Riduci ↙️';
         }
 
         // Modal Logic
@@ -987,6 +1028,7 @@
 
         async function runAll() {
             visTarget.innerHTML = "";
+            toggleVisualizer('open');
             // Reset variables to initial state for a fresh run
             for (let k in variables) variables[k] = 0;
             initializedVariables.clear();
