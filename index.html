@@ -782,40 +782,51 @@
         }
 
         // Initialize Palette Drags
+        // Initialize Palette Drags with Delegation
         function initPaletteDrags() {
+            const sidebar = document.getElementById('sidebar-menu');
+
+            // Clean up old delegated listeners if any
+            sidebar.removeEventListener('touchstart', handlePaletteTouch);
+            sidebar.addEventListener('touchstart', handlePaletteTouch, { passive: false });
+
+            // Native drag remains for PC
             document.querySelectorAll('.palette-item').forEach(item => {
                 item.removeEventListener('dragstart', handleDragStart);
                 item.addEventListener('dragstart', handleDragStart);
-
-                // Supporto Touch per la Palette (Mobile)
-                item.addEventListener('touchstart', (e) => {
-                    const type = item.dataset.type;
-                    const op = item.dataset.op;
-                    const varname = item.dataset.varname;
-                    const touch = e.touches[0];
-
-                    const newBlock = createBlock(type, op, varname, false);
-                    dropArea.appendChild(newBlock);
-
-                    const areaRect = dropArea.getBoundingClientRect();
-                    newBlock.style.left = (touch.clientX - areaRect.left + dropArea.scrollLeft - 50) + 'px';
-                    newBlock.style.top = (touch.clientY - areaRect.top + dropArea.scrollTop - 20) + 'px';
-
-                    // Chiudi la sidebar su mobile se aperta
-                    if (window.innerWidth <= 768 && document.getElementById('sidebar-menu').classList.contains('open')) {
-                        toggleSidebar();
-                    }
-
-                    // Avvia manualmente il trascinamento sul nuovo blocco con un piccolo delay
-                    setTimeout(() => {
-                        if (newBlock._dragStart) {
-                            newBlock._dragStart(e);
-                        }
-                    }, 0);
-
-                    if (e.cancelable) e.preventDefault();
-                }, { passive: false });
             });
+        }
+
+        function handlePaletteTouch(e) {
+            const item = e.target.closest('.palette-item');
+            if (!item) return;
+
+            const type = item.dataset.type;
+            const op = item.dataset.op;
+            const varname = item.dataset.varname;
+            const touch = e.touches[0];
+
+            // Create and position new block
+            const newBlock = createBlock(type, op, varname, false);
+            dropArea.appendChild(newBlock);
+
+            const areaRect = dropArea.getBoundingClientRect();
+            newBlock.style.left = (touch.clientX - areaRect.left + dropArea.scrollLeft - 50) + 'px';
+            newBlock.style.top = (touch.clientY - areaRect.top + dropArea.scrollTop - 20) + 'px';
+
+            // Auto-close sidebar on mobile
+            if (window.innerWidth <= 768 && document.getElementById('sidebar-menu').classList.contains('open')) {
+                toggleSidebar();
+            }
+
+            // Start drag logic immediately
+            setTimeout(() => {
+                if (newBlock._dragStart) {
+                    newBlock._dragStart(e);
+                }
+            }, 0);
+
+            if (e.cancelable) e.preventDefault();
         }
 
         function updateVarPalette() {
@@ -895,7 +906,7 @@
             const trash = document.getElementById('trash-zone');
 
             const onStart = (e) => {
-                if (e.target.tagName === 'INPUT') return;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
                 const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
