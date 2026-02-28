@@ -629,6 +629,32 @@
                 padding: 0 12px;
             }
         }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            70% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .emoji-pop {
+            display: inline-block;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+        }
+
+        .step-visual {
+            transition: all 0.5s ease;
+        }
     </style>
 </head>
 
@@ -1030,13 +1056,14 @@
         }
 
         // Execution
-        async function evaluate(block) {
+        async function evaluate(block, context = {}) {
             if (!block) return 0;
             const target = block.classList.contains('block') ? block : block.querySelector('.block');
 
             if (!target || target.dataset.type === 'comment') return 0;
             target.classList.add('executing');
-            await new Promise(r => setTimeout(r, 600));
+            // Aumentato ritardo iniziale per dare tempo di vedere quale blocco si attiva
+            await new Promise(r => setTimeout(r, 1200));
 
             let res = 0;
             const type = target.dataset.type;
@@ -1045,24 +1072,28 @@
                 if (type === 'number') res = parseFloat(target.querySelector('input').value) || 0;
                 else if (type === 'text') res = target.querySelector('input').value;
                 else if (type === 'input') {
-                    const val = await showPrompt("Input", "Inserisci un numero:", "number");
+                    const promptMsg = context.varName
+                        ? `Inserisci il numero per: ${context.varName}`
+                        : "Inserisci un numero:";
+                    const val = await showPrompt("Input", promptMsg, "number");
                     res = parseFloat(val) || 0;
-                    addStep("Input Utente", res, "input-step");
+                    addStep(`Hai scritto il numero:`, res, "input-step");
                 }
                 else if (type === 'getvar') {
                     const vName = target.dataset.varname;
                     if (!initializedVariables.has(vName)) {
-                        addStep(`❌ Errore: ${vName}`, "Non configurata!", "error-step");
+                        addStep(`Ohi! La scatola "${vName}"`, "È vuota!", "error-step");
                     }
                     res = variables[vName] || 0;
-                    addStep(`Leggi ${vName}`, res, "var-step");
+                    addStep(`Ho guardato nella scatola "${vName}" e c'è:`, res, "var-step");
                 }
                 else if (type === 'setvar') {
                     const valSlot = target.querySelector('[data-slot="val"]');
-                    res = await evaluate(valSlot.querySelector('.block'));
-                    variables[target.dataset.varname] = res;
-                    initializedVariables.add(target.dataset.varname);
-                    addStep(`Inserisci ${res} in ${target.dataset.varname}`, res, "var-step");
+                    const vName = target.dataset.varname;
+                    res = await evaluate(valSlot.querySelector('.block'), { varName: vName });
+                    variables[vName] = res;
+                    initializedVariables.add(vName);
+                    addStep(`Ho messo il numero ${res} nella scatola:`, vName, "var-step");
                     updateVarWatch();
                 } else if (type === 'bracket') {
                     res = await evaluate(target.querySelector('[data-slot="inner"]').querySelector('.block'));
@@ -1071,7 +1102,8 @@
                     const v2 = await evaluate(target.querySelector('[data-slot="right"]').querySelector('.block'));
                     const op = target.dataset.op;
                     res = (op === '>') ? (v1 > v2) : (v1 === v2);
-                    addStep(`Test: ${v1} ${op} ${v2}`, res ? "VERO" : "FALSO", "logic-step");
+                    const checkMsg = op === '>' ? `Ho controllato se ${v1} è più grande di ${v2}:` : `Ho controllato se ${v1} è uguale a ${v2}:`;
+                    addStep(checkMsg, res ? "SÌ, È VERO!" : "NO, È FALSO", "logic-step");
                 } else if (type === 'ifelse') {
                     const cond = await evaluate(target.querySelector('[data-slot="cond"]').querySelector('.block'));
                     const slot = cond ? 'then' : 'else';
@@ -1084,17 +1116,72 @@
                     } else {
                         res = "???";
                     }
-                    addStep("📢 Messaggio", res, "input-step");
+                    addStep("📢 Ti dico questo:", res, "input-step");
                 } else if (target.dataset.type === 'operator') {
-                    const v1 = await evaluate(target.querySelector('[data-slot="left"]').querySelector('.block'));
-                    const v2 = await evaluate(target.querySelector('[data-slot="right"]').querySelector('.block'));
+                    const getEmojiForBlock = (b, defaultEmoji) => {
+                        if (!b) return defaultEmoji;
+                        if (b.dataset.type === 'getvar' && b.dataset.varname) {
+                            const name = b.dataset.varname.toLowerCase();
+                            if (name.includes('tambur')) return '🥁';
+                            if (name.includes('tromb')) return '🎺';
+                            if (name.includes('mel')) return '🍎';
+                            if (name.includes('stell')) return '⭐️';
+                            if (name.includes('gatto') || name.includes('mici')) return '🐱';
+                            if (name.includes('can')) return '🐶';
+                            if (name.includes('pallon')) return '🎈';
+                        }
+                        return defaultEmoji;
+                    };
+
+                    const leftBlock = target.querySelector('[data-slot="left"]').querySelector('.block');
+                    const rightBlock = target.querySelector('[data-slot="right"]').querySelector('.block');
+
+                    const v1 = await evaluate(leftBlock);
+                    const v2 = await evaluate(rightBlock);
+
+                    let opText = "";
+                    let visual = "";
+
                     switch (target.dataset.op) {
-                        case '+': res = v1 + v2; break;
-                        case '-': res = v1 - v2; break;
-                        case '*': res = v1 * v2; break;
-                        case '/': res = v2 !== 0 ? v1 / v2 : 0; break;
+                        case '+':
+                            res = v1 + v2;
+                            opText = `Ho aggiunto ${v2} a ${v1} e fa:`;
+                            if (res <= 20) {
+                                const e1 = getEmojiForBlock(leftBlock, '🍎');
+                                const e2 = getEmojiForBlock(rightBlock, '🍎');
+                                // Se sono uguali o uno è zero, mostriamo l'emoji base, 
+                                // altrimenti mostriamo l'unione visiva di entrambi (es. 🥁🥁🎺🎺)
+                                let resEmoji = "";
+                                if (e1 === e2 || v1 === 0 || v2 === 0) {
+                                    resEmoji = (e1 !== '🍎' ? e1 : e2).repeat(res);
+                                } else {
+                                    resEmoji = e1.repeat(v1) + e2.repeat(v2);
+                                }
+                                visual = `${e1.repeat(v1)} + ${e2.repeat(v2)} = ${resEmoji}`;
+                            }
+                            break;
+                        case '-':
+                            res = v1 - v2;
+                            opText = `Ho tolto ${v2} da ${v1} e resta:`;
+                            if (v1 <= 20) {
+                                const eMinus = getEmojiForBlock(leftBlock, '🎈');
+                                visual = `${eMinus.repeat(v1)} <span style="opacity:0.3">${eMinus.repeat(v2)}</span> = ${eMinus.repeat(res)}`;
+                            }
+                            break;
+                        case '*':
+                            res = v1 * v2;
+                            opText = `Ho moltiplicato ${v1} per ${v2} e fa:`;
+                            if (res <= 20) {
+                                const eMult = getEmojiForBlock(leftBlock, '⭐️');
+                                visual = Array(v2).fill(eMult.repeat(v1)).join(" + ") + " = " + "✨".repeat(res);
+                            }
+                            break;
+                        case '/':
+                            res = v2 !== 0 ? v1 / v2 : 0;
+                            opText = v2 !== 0 ? `Ho diviso ${v1} in ${v2} parti e fa:` : "Non posso dividere per zero!";
+                            break;
                     }
-                    addStep(`${v1} ${target.dataset.op} ${v2}`, res);
+                    addStep(opText, res, "", visual);
                 }
             } catch (e) {
                 console.error("Eval error", e);
@@ -1105,11 +1192,44 @@
             return res;
         }
 
-        function addStep(l, r, c = "") {
+        async function addStep(l, r, c = "", visual = "") {
             const s = document.createElement('div');
             s.className = `history-step ${c}`;
-            s.innerHTML = `<span>${l}</span> <span class="step-result">${typeof r === 'number' ? Math.round(r * 100) / 100 : r}</span>`;
-            visTarget.appendChild(s); visTarget.scrollTop = visTarget.scrollHeight;
+            s.style.flexDirection = 'column';
+            s.style.alignItems = 'flex-start';
+            s.innerHTML = `
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                    <span style="flex-grow:1">${l}</span> 
+                    <span class="step-result" style="margin-left:10px">${typeof r === 'number' ? Math.round(r * 100) / 100 : r}</span>
+                </div>
+                <div class="visual-container" style="margin-top:8px; font-size:1.1rem; letter-spacing:1px; background:rgba(255,255,255,0.5); padding:5px 10px; border-radius:8px; width:100%; overflow-x:auto; white-space:nowrap; display: none;"></div>
+            `;
+            visTarget.appendChild(s);
+            visTarget.scrollTop = visTarget.scrollHeight;
+
+            if (visual) {
+                const container = s.querySelector('.visual-container');
+                container.style.display = 'block';
+
+                const tokens = visual.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[\+\-\=]|\s+)/g) || [];
+                let delay = 0;
+
+                for (const token of tokens) {
+                    const span = document.createElement('span');
+                    span.className = token.trim() ? 'emoji-pop' : '';
+                    span.style.animationDelay = `0s`; // Gestiamo il delay con await invece che CSS
+                    span.innerHTML = token === ' ' ? '&nbsp;' : token;
+                    container.appendChild(span);
+
+                    if (token.trim()) {
+                        // Aspetta un po' tra un'icona e l'altra per farla "contare" al bambino
+                        await new Promise(r => setTimeout(r, 400));
+                    }
+                    visTarget.scrollTop = visTarget.scrollHeight;
+                }
+            }
+            // Aspetta un secondo extra alla fine del passaggio per farlo leggere bene
+            await new Promise(r => setTimeout(r, 1000));
         }
 
         function updateVarWatch() {
