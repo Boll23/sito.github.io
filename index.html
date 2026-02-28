@@ -681,7 +681,7 @@
 
     <main>
         <div class="top-controls">
-            <div id="trash-zone">🗑️</div>
+            <div id="trash-zone" title="Trascina qui per eliminare">🗑️</div>
             <button class="btn btn-clear" onclick="clearWorkspace()">Svuota</button>
             <button class="btn btn-run" onclick="runAll()">Avvia Algoritmo ⚡</button>
         </div>
@@ -703,7 +703,6 @@
                 </div>
             </div>
         </div>
-        <div id="trash-zone">🗑️</div>
     </main>
 
     <script>
@@ -935,9 +934,9 @@
             const trash = document.getElementById('trash-zone');
 
             const onStart = (e) => {
-                // Su mobile permettiamo il drag anche se si tocca l'input (usiamo le icone/handle come aiuto)
-                // Ma su PC evitiamo per permettere la selezione del testo nell'input
-                if ((e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') && e.type === 'mousedown') return;
+                // Semplificato: se tocco un input o textarea in qualsiasi modo (mouse o touch), 
+                // lascio che sia il browser a gestire il focus/cursore senza bloccare con preventDefault o drag.
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
                 const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
