@@ -1063,7 +1063,7 @@
             if (!target || target.dataset.type === 'comment') return 0;
             target.classList.add('executing');
             // Aumentato ritardo iniziale per dare tempo di vedere quale blocco si attiva
-            await new Promise(r => setTimeout(r, 1200));
+            await new Promise(r => setTimeout(r, 2000));
 
             let res = 0;
             const type = target.dataset.type;
@@ -1116,7 +1116,7 @@
                     } else {
                         res = "???";
                     }
-                    addStep("📢 Ti dico questo:", res, "input-step");
+                    addStep("📢 Il risultato è:", res, "input-step");
                 } else if (target.dataset.type === 'operator') {
                     const getEmojiForBlock = (b, defaultEmoji) => {
                         if (!b) return defaultEmoji;
@@ -1205,7 +1205,7 @@
                 <div class="visual-container" style="margin-top:8px; font-size:1.1rem; letter-spacing:1px; background:rgba(255,255,255,0.5); padding:5px 10px; border-radius:8px; width:100%; overflow-x:auto; white-space:nowrap; display: none;"></div>
             `;
             visTarget.appendChild(s);
-            visTarget.scrollTop = visTarget.scrollHeight;
+            setTimeout(() => visTarget.scrollTo({ top: visTarget.scrollHeight, behavior: 'smooth' }), 10);
 
             if (visual) {
                 const container = s.querySelector('.visual-container');
@@ -1221,15 +1221,19 @@
                     span.innerHTML = token === ' ' ? '&nbsp;' : token;
                     container.appendChild(span);
 
+                    setTimeout(() => {
+                        visTarget.scrollTo({ top: visTarget.scrollHeight, behavior: 'smooth' });
+                        container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
+                    }, 10);
+
                     if (token.trim()) {
                         // Aspetta un po' tra un'icona e l'altra per farla "contare" al bambino
-                        await new Promise(r => setTimeout(r, 400));
+                        await new Promise(r => setTimeout(r, 1200));
                     }
-                    visTarget.scrollTop = visTarget.scrollHeight;
                 }
             }
             // Aspetta un secondo extra alla fine del passaggio per farlo leggere bene
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 3000));
         }
 
         function updateVarWatch() {
@@ -1274,6 +1278,7 @@
             f.style = "margin-top:15px; text-align:center; font-weight:900; font-size:1.8rem; color:var(--primary);";
             f.innerHTML = `FINALE: ${finalResult}`;
             visTarget.appendChild(f);
+            setTimeout(() => visTarget.scrollTo({ top: visTarget.scrollHeight, behavior: 'smooth' }), 10);
         }
 
         function clearWorkspace() { dropArea.innerHTML = ''; visTarget.innerHTML = ''; }
