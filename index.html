@@ -702,6 +702,8 @@
         <div class="category-title">Logica</div>
         <div class="palette-item p-logic" draggable="true" data-type="compare" data-op=">"><span>🆚</span> Maggiore ( >
             )</div>
+        <div class="palette-item p-logic" draggable="true" data-type="compare" data-op="=="><span>🟰</span> Uguale (=)
+        </div>
         <div class="palette-item p-logic" draggable="true" data-type="ifelse"><span>🤔</span> SE... ALLORA...</div>
     </aside>
 
@@ -920,7 +922,7 @@
             else if (type === 'text') el.innerHTML = `<span>🔤</span> <input type="text" value="Musica!" style="width:120px">`;
             else if (type === 'input') el.innerHTML = `<span>❓</span> Chiedi Numero`;
             else if (type === 'bracket') el.innerHTML = `( <div class="slot" data-slot="inner"></div> )`;
-            else if (type === 'compare') el.innerHTML = `<div class="slot" data-slot="left"></div> ${op === '>' ? 'è maggiore di' : 'è uguale a'} <div class="slot" data-slot="right"></div>`;
+            else if (type === 'compare') el.innerHTML = `<div class="slot" data-slot="left"></div> ${op === '>' ? 'è maggiore di' : (op === '==' ? 'è uguale a' : '???')} <div class="slot" data-slot="right"></div>`;
             else if (type === 'setvar') el.innerHTML = `<span>📦</span> INSERISCI <div class="slot" data-slot="val"></div> IN [ ${varname || '❓'} ]`;
             else if (type === 'getvar') el.innerHTML = `<span>🏷️</span> Variabile [ ${varname || '❓'} ]`;
             else if (type === 'message') el.innerHTML = `<span>📢</span> Dì <div class="slot" data-slot="msg"></div>`;
@@ -1056,6 +1058,11 @@
         }
 
         // Execution
+        function getSlot(block, slotName) {
+            return Array.from(block.querySelectorAll('.slot'))
+                .find(s => s.dataset.slot === slotName && s.closest('.block') === block);
+        }
+
         async function evaluate(block, context = {}) {
             if (!block) return 0;
             const target = block.classList.contains('block') ? block : block.querySelector('.block');
@@ -1077,39 +1084,45 @@
                         : "Inserisci un numero:";
                     const val = await showPrompt("Input", promptMsg, "number");
                     res = parseFloat(val) || 0;
-                    addStep(`Hai scritto il numero:`, res, "input-step");
+                    await addStep(`Hai scritto il numero:`, res, "input-step");
                 }
                 else if (type === 'getvar') {
                     const vName = target.dataset.varname;
                     if (!initializedVariables.has(vName)) {
-                        addStep(`Ohi! La scatola "${vName}"`, "È vuota!", "error-step");
+                        await addStep(`Ohi! La scatola "${vName}"`, "È vuota!", "error-step");
                     }
                     res = variables[vName] || 0;
-                    addStep(`Ho guardato nella scatola "${vName}" e c'è:`, res, "var-step");
+                    await addStep(`Ho guardato nella scatola "${vName}" e c'è:`, res, "var-step");
                 }
                 else if (type === 'setvar') {
-                    const valSlot = target.querySelector('[data-slot="val"]');
+                    const valSlot = getSlot(target, 'val');
                     const vName = target.dataset.varname;
                     res = await evaluate(valSlot.querySelector('.block'), { varName: vName });
                     variables[vName] = res;
                     initializedVariables.add(vName);
-                    addStep(`Ho messo il numero ${res} nella scatola:`, vName, "var-step");
+                    await addStep(`Ho messo il numero ${res} nella scatola:`, vName, "var-step");
                     updateVarWatch();
                 } else if (type === 'bracket') {
-                    res = await evaluate(target.querySelector('[data-slot="inner"]').querySelector('.block'));
+                    res = await evaluate(getSlot(target, 'inner').querySelector('.block'));
                 } else if (type === 'compare') {
-                    const v1 = await evaluate(target.querySelector('[data-slot="left"]').querySelector('.block'));
-                    const v2 = await evaluate(target.querySelector('[data-slot="right"]').querySelector('.block'));
+                    const leftBlock = getSlot(target, 'left').querySelector('.block');
+                    const rightBlock = getSlot(target, 'right').querySelector('.block');
+
+                    const v1 = await evaluate(leftBlock);
+                    if (rightBlock) await new Promise(r => setTimeout(r, 1000));
+                    const v2 = await evaluate(rightBlock);
+                    await new Promise(r => setTimeout(r, 1500));
+
                     const op = target.dataset.op;
-                    res = (op === '>') ? (v1 > v2) : (v1 === v2);
+                    res = (op === '>') ? (v1 > v2) : (v1 == v2); // Using loose equality (==) allows comparing different types safely
                     const checkMsg = op === '>' ? `Ho controllato se ${v1} è più grande di ${v2}:` : `Ho controllato se ${v1} è uguale a ${v2}:`;
-                    addStep(checkMsg, res ? "SÌ, È VERO!" : "NO, È FALSO", "logic-step");
+                    await addStep(checkMsg, res ? "SÌ, È VERO!" : "NO, È FALSO", "logic-step");
                 } else if (type === 'ifelse') {
-                    const cond = await evaluate(target.querySelector('[data-slot="cond"]').querySelector('.block'));
+                    const cond = await evaluate(getSlot(target, 'cond').querySelector('.block'));
                     const slot = cond ? 'then' : 'else';
-                    res = await evaluate(target.querySelector(`[data-slot="${slot}"]`).querySelector('.block'));
+                    res = await evaluate(getSlot(target, slot).querySelector('.block'));
                 } else if (type === 'message') {
-                    const msgSlot = target.querySelector('[data-slot="msg"]');
+                    const msgSlot = getSlot(target, 'msg');
                     const block = msgSlot.querySelector('.block');
                     let isText = false;
                     if (block) {
@@ -1120,9 +1133,9 @@
                     }
 
                     if (isText) {
-                        addStep("📢 Messaggio:", res, "input-step");
+                        await addStep("📢 Messaggio:", res, "input-step");
                     } else {
-                        addStep("📢 Il risultato è:", res, "input-step");
+                        await addStep("📢 Il risultato è:", res, "input-step");
                     }
                 } else if (target.dataset.type === 'operator') {
                     const getEmojiForBlock = (b, defaultEmoji) => {
@@ -1140,11 +1153,16 @@
                         return defaultEmoji;
                     };
 
-                    const leftBlock = target.querySelector('[data-slot="left"]').querySelector('.block');
-                    const rightBlock = target.querySelector('[data-slot="right"]').querySelector('.block');
+                    const leftBlock = getSlot(target, 'left').querySelector('.block');
+                    const rightBlock = getSlot(target, 'right').querySelector('.block');
 
                     const v1 = await evaluate(leftBlock);
+                    // Aggiungo un ritardo prima di valutare il blocco di destra se esiste, per dare il senso di sequenza
+                    if (rightBlock) await new Promise(r => setTimeout(r, 1000));
                     const v2 = await evaluate(rightBlock);
+
+                    // Aggiungo un ritardo prima di mostrare il risultato finale dell'operazione
+                    await new Promise(r => setTimeout(r, 1500));
 
                     let opText = "";
                     let visual = "";
@@ -1188,7 +1206,7 @@
                             opText = v2 !== 0 ? `Ho diviso ${v1} in ${v2} parti e fa:` : "Non posso dividere per zero!";
                             break;
                     }
-                    addStep(opText, res, "", visual);
+                    await addStep(opText, res, "", visual);
                 }
             } catch (e) {
                 console.error("Eval error", e);
