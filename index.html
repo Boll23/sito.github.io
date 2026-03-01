@@ -1111,12 +1111,19 @@
                 } else if (type === 'message') {
                     const msgSlot = target.querySelector('[data-slot="msg"]');
                     const block = msgSlot.querySelector('.block');
+                    let isText = false;
                     if (block) {
                         res = await evaluate(block);
+                        if (block.dataset.type === 'text') isText = true;
                     } else {
                         res = "???";
                     }
-                    addStep("📢 Il risultato è:", res, "input-step");
+
+                    if (isText) {
+                        addStep("📢 Messaggio:", res, "input-step");
+                    } else {
+                        addStep("📢 Il risultato è:", res, "input-step");
+                    }
                 } else if (target.dataset.type === 'operator') {
                     const getEmojiForBlock = (b, defaultEmoji) => {
                         if (!b) return defaultEmoji;
