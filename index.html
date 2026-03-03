@@ -411,28 +411,6 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            border-right: 1px solid #eee;
-        }
-
-        .var-watch {
-            width: 140px;
-            background: #f8f9fa;
-            padding: 15px;
-            border-left: 1px solid #eee;
-        }
-
-        .var-item {
-            font-size: 0.8rem;
-            margin-bottom: 8px;
-            font-family: monospace;
-            color: #495057;
-        }
-
-        .var-val {
-            font-weight: 800;
-            color: var(--variable);
-            display: block;
-            font-size: 1rem;
         }
 
         .history-step {
@@ -608,22 +586,6 @@
                 height: 40vh;
             }
 
-            #visualizer.minimized {
-                width: 160px !important;
-                left: auto;
-                right: 15px;
-            }
-
-            .var-watch {
-                width: 80px;
-                padding: 8px;
-                font-size: 0.7rem;
-            }
-
-            .var-val {
-                font-size: 0.8rem;
-            }
-
             .vis-header {
                 height: 40px;
                 padding: 0 12px;
@@ -726,9 +688,6 @@
             </div>
             <div class="vis-container">
                 <div class="vis-content" id="vis-target"></div>
-                <div class="var-watch" id="var-watch">
-                    <p style="font-size: 0.7rem; font-weight: 800; color: #adb5bd; margin-bottom: 10px;">MEMORIA</p>
-                </div>
             </div>
         </div>
     </main>
@@ -736,7 +695,6 @@
     <script>
         const dropArea = document.getElementById('drop-area');
         const visTarget = document.getElementById('vis-target');
-        const varWatch = document.getElementById('var-watch');
         const varPalette = document.getElementById('var-palette');
         const modal = document.getElementById('app-modal');
         const modalField = document.getElementById('modal-field');
@@ -1101,7 +1059,6 @@
                     variables[vName] = res;
                     initializedVariables.add(vName);
                     await addStep(`Ho messo il numero ${res} nella scatola:`, vName, "var-step");
-                    updateVarWatch();
                 } else if (type === 'bracket') {
                     res = await evaluate(getSlot(target, 'inner').querySelector('.block'));
                 } else if (type === 'compare') {
@@ -1198,12 +1155,24 @@
                             opText = `Ho moltiplicato ${v1} per ${v2} e fa:`;
                             if (res <= 20) {
                                 const eMult = getEmojiForBlock(leftBlock, '⭐️');
-                                visual = Array(v2).fill(eMult.repeat(v1)).join(" + ") + " = " + "✨".repeat(res);
+                                visual = `${v1} ✖️ ${v2} ➡️ ` + Array(Math.floor(v2)).fill(`(${eMult.repeat(v1)})`).join(" + ") + " = " + "✨".repeat(res);
                             }
                             break;
                         case '/':
                             res = v2 !== 0 ? v1 / v2 : 0;
                             opText = v2 !== 0 ? `Ho diviso ${v1} in ${v2} parti e fa:` : "Non posso dividere per zero!";
+                            if (v2 !== 0 && v1 <= 20 && v1 > 0) {
+                                const eDiv = getEmojiForBlock(leftBlock, '🍏');
+                                const groupSize = Math.floor(v1 / v2);
+                                const remainder = v1 % v2;
+                                if (groupSize > 0) {
+                                    let groups = Array(Math.floor(v2)).fill(`(${eDiv.repeat(groupSize)})`).join(" ");
+                                    if (remainder > 0) groups += ` + resta ${eDiv.repeat(remainder)}`;
+                                    visual = `${eDiv.repeat(v1)} / ${Math.floor(v2)} ➡️ ${groups}`;
+                                } else {
+                                    visual = `${eDiv.repeat(v1)} / ${Math.floor(v2)} ➡️ non bastano per tutti! 😅`;
+                                }
+                            }
                             break;
                     }
                     await addStep(opText, res, "", visual);
@@ -1236,13 +1205,14 @@
                 const container = s.querySelector('.visual-container');
                 container.style.display = 'block';
 
-                const tokens = visual.match(/([\uD800-\uDBFF][\uDC00-\uDFFF]|[\+\-\=]|\s+)/g) || [];
-                let delay = 0;
+                // Regex migliorata: cattura emoji (anche surrogate pair), numeri, parole, simboli speciali e ogni singolo carattere rimanente
+                // Usiamo il flag 'u' per gestire correttamente le emoji BMP e surrogate
+                const tokens = visual.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[0-9a-zA-Z]+|resta|\s+|./gu) || [];
 
                 for (const token of tokens) {
                     const span = document.createElement('span');
+                    const isEmoji = /[\uD800-\uDBFF][\uDC00-\uDFFF]/.test(token);
                     span.className = token.trim() ? 'emoji-pop' : '';
-                    span.style.animationDelay = `0s`; // Gestiamo il delay con await invece che CSS
                     span.innerHTML = token === ' ' ? '&nbsp;' : token;
                     container.appendChild(span);
 
@@ -1252,8 +1222,8 @@
                     }, 10);
 
                     if (token.trim()) {
-                        // Aspetta un po' tra un'icona e l'altra per farla "contare" al bambino
-                        await new Promise(r => setTimeout(r, 1200));
+                        // Delay differenziato: lento per emoji (per contare), veloce per il resto
+                        await new Promise(r => setTimeout(r, isEmoji ? 1200 : 300));
                     }
                 }
             }
@@ -1261,14 +1231,6 @@
             await new Promise(r => setTimeout(r, 3000));
         }
 
-        function updateVarWatch() {
-            varWatch.innerHTML = '<p style="font-size: 0.7rem; font-weight: 800; color: #adb5bd; margin-bottom: 10px;">MEMORIA</p>';
-            for (let k in variables) {
-                const item = document.createElement('div'); item.className = 'var-item';
-                item.innerHTML = `${k}: <span class="var-val">${variables[k]}</span>`;
-                varWatch.appendChild(item);
-            }
-        }
 
         async function runAll() {
             visTarget.innerHTML = "";
@@ -1276,7 +1238,6 @@
             // Reset variables to initial state for a fresh run
             for (let k in variables) variables[k] = 0;
             initializedVariables.clear();
-            updateVarWatch();
 
             const roots = Array.from(dropArea.children)
                 .filter(c => c.classList.contains('block'))
@@ -1321,7 +1282,6 @@
             variableNames = [];
             variables = {};
             updateVarPalette();
-            updateVarWatch();
 
             // SFIDA: Il Concerto dell'Orchestra! 🎶
             const note = createBlock('comment');
