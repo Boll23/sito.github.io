@@ -1,183 +1,285 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIROR: Musical Interaction Relying On Reflexion</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-space': '#05050A',
+                        'primary-glow': '#00f0ff',
+                        'secondary-glow': '#7000ff',
+                        'accent-glow': '#ff003c',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(40px, -60px) scale(1.1)' },
+                            '66%': { transform: 'translate(-30px, 30px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         :root {
-            --primary: #0ea5e9;
-            --secondary: #8b5cf6;
-            --accent: #f59e0b;
-            --dark: #0f172a;
-            --glass: rgba(255, 255, 255, 0.05);
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-highlight: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--dark);
-            color: #f1f5f9;
-            scroll-behavior: smooth;
+            background-color: #05050A;
+            color: #e2e8f0;
+            overflow-x: hidden;
         }
 
-        .serif { font-family: 'Playfair Display', serif; }
-
         .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
             border-radius: 24px;
-            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 var(--glass-highlight);
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent);
+            transform: skewX(-20deg);
+            transition: all 0.7s ease;
+        }
+
+        .glass-card:hover::before {
+            left: 200%;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.04);
         }
 
         .section-tag {
-            @apply px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-6 inline-block;
+            @apply px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-6 inline-flex items-center gap-2 border;
         }
 
         .neuron-canvas {
             position: fixed;
             inset: 0;
             pointer-events: none;
-            opacity: 0.2;
             z-index: 0;
+            opacity: 0.8;
         }
 
         .gradient-text {
-            @apply bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-purple-400;
+            background: linear-gradient(135deg, #00f0ff 0%, #7000ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .highlight-box {
-            @apply p-8 border-l-4 border-sky-500 bg-sky-500/10 rounded-r-3xl mb-8;
+            @apply p-8 border-l-4 border-primary-glow bg-primary-glow/5 rounded-r-3xl mb-8 relative overflow-hidden;
         }
+        
+        .highlight-box::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(0,240,255,0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased font-sans">
+
+    <!-- Ambient Glowing Orbs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+        <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary-glow/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-secondary-glow/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-accent-glow/10 rounded-full mix-blend-screen filter blur-[150px] animate-blob animation-delay-4000"></div>
+    </div>
 
     <canvas id="neuronCanvas" class="neuron-canvas"></canvas>
 
     <!-- Navigazione -->
-    <nav class="fixed top-0 w-full z-50 px-6 py-4">
-        <div class="max-w-6xl mx-auto glass-card px-8 py-3 flex justify-between items-center">
-            <span class="font-bold tracking-widest text-sm uppercase">MIROR Project</span>
-            <div class="hidden md:flex gap-6 text-[10px] font-bold uppercase tracking-widest">
-                <a href="#neuroscience" class="hover:text-sky-400">Neuroni Specchio</a>
-                <a href="#applicazioni" class="hover:text-sky-400">Applicazioni</a>
-                <a href="#ia" class="hover:text-sky-400">SMIR & Tabula Rasa</a>
-                <a href="#tecnica" class="hover:text-sky-400">Algoritmo</a>
+    <nav class="fixed top-0 w-full z-50 px-6 py-6 transition-all duration-300" id="navbar">
+        <div class="max-w-6xl mx-auto glass-card px-8 py-4 flex justify-between items-center bg-black/20">
+            <span class="font-bold tracking-widest text-sm uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-white/50">MIROR Project</span>
+            <div class="hidden md:flex gap-8 text-[10px] font-bold uppercase tracking-widest">
+                <a href="#neuroscience" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Neuroni Specchio</a>
+                <a href="#applicazioni" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Applicazioni</a>
+                <a href="#ia" class="text-white/60 hover:text-primary-glow transition-colors duration-300">SMIR & Tabula Rasa</a>
+                <a href="#tecnica" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Algoritmo</a>
             </div>
         </div>
     </nav>
 
-    <main class="relative z-10 pt-32 pb-20 px-6 max-w-6xl mx-auto">
+    <main class="relative z-10 pt-28 md:pt-40 pb-16 md:pb-24 px-4 md:px-6 max-w-6xl mx-auto">
         
         <!-- HERO -->
-        <header class="mb-32">
-            <span class="section-tag bg-sky-500/20 text-sky-400">Neurodidattica Musicale</span>
-            <h1 class="serif text-5xl md:text-7xl font-bold mb-4">MIROR</h1>
-            <h2 class="text-xl md:text-2xl font-light tracking-[0.1em] text-slate-400 mb-10 uppercase">
-                Musical Interaction Relying On <span class="text-sky-400 font-bold">Reflexion</span>
+        <header class="mb-24 md:mb-40 reveal">
+            <span class="section-tag bg-primary-glow/10 text-primary-glow border-primary-glow/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary-glow animate-pulse"></span>
+                Neurodidattica Musicale
+            </span>
+            <h1 class="font-serif text-6xl md:text-8xl font-bold mb-4 md:mb-6 tracking-tight">MIROR</h1>
+            <h2 class="text-xl md:text-3xl font-light tracking-[0.15em] text-slate-300 mb-8 md:mb-12 uppercase">
+                Musical Interaction Relying On <span class="gradient-text font-bold">Reflexion</span>
             </h2>
-            <div class="h-1 w-24 bg-gradient-to-r from-sky-500 to-purple-500 mb-10"></div>
-            <p class="text-xl text-slate-400 max-w-3xl leading-relaxed">
-                Il progetto MIROR trasforma le scoperte neuroscientifiche di Parma in una piattaforma interattiva basata sugli <strong>SMIR</strong>, dove la macchina riflette l'io creativo del bambino attraverso il paradigma della riflessività.
+            <div class="h-1 w-32 bg-gradient-to-r from-primary-glow to-secondary-glow mb-10 rounded-full shadow-[0_0_15px_rgba(0,240,255,0.5)]"></div>
+            <p class="text-xl md:text-2xl text-slate-400 max-w-3xl leading-relaxed font-light mb-12">
+                Il progetto MIROR trasforma le scoperte neuroscientifiche di Parma in una piattaforma interattiva basata sugli <strong class="text-white font-semibold">SMIR</strong>, dove la macchina riflette l'io creativo del bambino attraverso il paradigma della riflessività.
             </p>
+            
+            <a href="https://www.youtube.com/watch?v=DDCXTY1Vzi0" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-primary-glow/10 border border-primary-glow/30 text-primary-glow font-bold hover:bg-primary-glow/20 hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(0,240,255,0.2)] hover:shadow-[0_0_30px_rgba(0,240,255,0.4)] group relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                <svg class="w-6 h-6 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                </svg>
+                Guarda il Video Dimostrativo
+            </a>
         </header>
 
         <!-- SEZIONE 1: NEUROSCIENZE E NEURONI A SPECCHIO -->
-        <section id="neuroscience" class="mb-32">
+        <section id="neuroscience" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
             <div class="max-w-4xl">
-                <span class="section-tag bg-emerald-500/20 text-emerald-400">Fondamento Biologico</span>
-                <h2 class="serif text-4xl font-bold mb-8 italic">I Neuroni a Specchio (G. Rizzolatti)</h2>
+                <span class="section-tag bg-green-500/10 text-green-400 border-green-500/20">Fondamento Biologico</span>
+                <h2 class="font-serif text-4xl md:text-5xl font-bold mb-10 italic">I Neuroni a Specchio (G. Rizzolatti)</h2>
                 
                 <div class="highlight-box">
-                    <p class="text-lg text-slate-200 leading-relaxed">
-                        Scoperti dal team di <strong>Giacomo Rizzolatti</strong>, questi neuroni si attivano non solo quando compiamo un'azione, ma anche quando <strong>osserviamo o ascoltiamo</strong> un'azione simile compiuta da altri.
+                    <p class="text-xl text-slate-200 leading-relaxed font-light">
+                        Scoperti dal team di <strong class="text-white">Giacomo Rizzolatti</strong>, questi neuroni si attivano non solo quando compiamo un'azione, ma anche quando <strong class="text-primary-glow font-medium">osserviamo o ascoltiamo</strong> un'azione simile compiuta da altri.
                     </p>
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-8 mt-12">
-                    <div class="glass-card p-8 border-l-2 border-emerald-500">
-                        <h3 class="text-emerald-400 font-bold mb-4 uppercase text-xs tracking-widest">Simulazione Incarnata</h3>
-                        <p class="text-sm text-slate-400">Ascoltare la risposta del MIROR attiva nel bambino la sensazione motoria di aver prodotto quel suono. Il cervello "simula" il gesto riflesso, creando un legame profondo tra sé e la macchina.</p>
+                <div class="grid md:grid-cols-2 gap-6 md:gap-8 mt-10 md:mt-16">
+                    <div class="glass-card p-6 md:p-10 border-l-2 border-l-green-500 hover:border-l-green-400">
+                        <div class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <h3 class="text-green-400 font-bold mb-4 uppercase text-xs tracking-widest">Simulazione Incarnata</h3>
+                        <p class="text-slate-400 leading-relaxed">Ascoltare la risposta del MIROR attiva nel bambino la sensazione motoria di aver prodotto quel suono. Il cervello "simula" il gesto riflesso, creando un legame profondo tra sé e la macchina.</p>
                     </div>
-                    <div class="glass-card p-8 border-l-2 border-emerald-500">
-                        <h3 class="text-emerald-400 font-bold mb-4 uppercase text-xs tracking-widest">Common Coding (Prinz)</h3>
-                        <p class="text-sm text-slate-400">Secondo il sistema di codifica di Prinz, percezione e azione condividono lo stesso codice cerebrale. Il MIROR, riflettendo lo stile del bambino, "parla" lo stesso codice della sua mente.</p>
+                    <div class="glass-card p-6 md:p-10 border-l-2 border-l-green-500 hover:border-l-green-400">
+                        <div class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <h3 class="text-green-400 font-bold mb-4 uppercase text-xs tracking-widest">Common Coding (Prinz)</h3>
+                        <p class="text-slate-400 leading-relaxed">Secondo il sistema di codifica di Prinz, percezione e azione condividono lo stesso codice cerebrale. Il MIROR, riflettendo lo stile del bambino, "parla" lo stesso codice della sua mente.</p>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- SEZIONE 2: LE APPLICAZIONI PRATICHE -->
-        <section id="applicazioni" class="mb-32">
-            <div class="text-center mb-16">
-                <span class="section-tag bg-purple-500/20 text-purple-400">La Piattaforma MIROR</span>
-                <h2 class="serif text-4xl font-bold">Le Tre Dimensioni della Creatività</h2>
+        <section id="applicazioni" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
+            <div class="text-center mb-12 md:mb-20">
+                <span class="section-tag bg-secondary-glow/10 text-secondary-glow border-secondary-glow/20">La Piattaforma MIROR</span>
+                <h2 class="font-serif text-4xl md:text-5xl font-bold mt-4">Le Tre Dimensioni della Creatività</h2>
             </div>
             
-            <div class="grid md:grid-cols-3 gap-8">
+            <div class="grid md:grid-cols-3 gap-6 md:gap-8">
                 <!-- MIROR-Impro -->
-                <div class="glass-card p-8 border-b-4 border-sky-500">
-                    <div class="text-sky-400 font-bold mb-4 flex items-center gap-2">
-                        <span class="text-2xl">🎹</span> MIROR-Impro
-                    </div>
-                    <h4 class="font-bold text-lg mb-3">Improvvisazione Musicale</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Dialogo libero sulla tastiera. Il sistema imita e varia l'input del bambino, stimolando l'esplorazione sonora e l'auto-ascolto critico.
+                <div class="glass-card p-6 md:p-10 border-b-2 border-b-primary-glow group">
+                    <div class="w-16 h-16 rounded-2xl bg-primary-glow/10 flex items-center justify-center mb-6 md:mb-8 text-3xl group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(0,240,255,0.2)]">🎹</div>
+                    <h4 class="font-bold text-xl mb-4 text-white">MIROR-Impro</h4>
+                    <p class="text-slate-400 leading-relaxed">
+                        Dialogo libero sulla tastiera. Il sistema imita e varia l'input del bambino, stimolando l'esplorazione sonora e l'auto-ascolto critico in tempo reale.
                     </p>
                 </div>
 
                 <!-- MIROR-Compo -->
-                <div class="glass-card p-8 border-b-4 border-purple-500">
-                    <div class="text-purple-400 font-bold mb-4 flex items-center gap-2">
-                        <span class="text-2xl">🎼</span> MIROR-Compo
-                    </div>
-                    <h4 class="font-bold text-lg mb-3">Composizione Creativa</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Permette di manipolare frasi musicali e "oggetti sonori". Il bambino co-regola la struttura musicale insieme all'intelligenza artificiale.
+                <div class="glass-card p-6 md:p-10 border-b-2 border-b-secondary-glow group">
+                    <div class="w-16 h-16 rounded-2xl bg-secondary-glow/10 flex items-center justify-center mb-6 md:mb-8 text-3xl group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(112,0,255,0.2)]">🎼</div>
+                    <h4 class="font-bold text-xl mb-4 text-white">MIROR-Compo</h4>
+                    <p class="text-slate-400 leading-relaxed">
+                        Permette di manipolare frasi musicali e "oggetti sonori". Il bambino co-regola la struttura musicale complessa insieme all'intelligenza artificiale.
                     </p>
                 </div>
 
                 <!-- MIROR-Body Gesture -->
-                <div class="glass-card p-8 border-b-4 border-amber-500">
-                    <div class="text-amber-400 font-bold mb-4 flex items-center gap-2">
-                        <span class="text-2xl">🤸</span> MIROR-Body
-                    </div>
-                    <h4 class="font-bold text-lg mb-3">Creatività Motoria</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Sviluppato con il Centro Paganini (Genova). Sonorizza il gesto corporeo: il suono diventa il riflesso acustico del movimento nello spazio.
+                <div class="glass-card p-6 md:p-10 border-b-2 border-b-orange-500 group">
+                    <div class="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6 md:mb-8 text-3xl group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(249,115,22,0.2)]">🤸</div>
+                    <h4 class="font-bold text-xl mb-4 text-white">MIROR-Body</h4>
+                    <p class="text-slate-400 leading-relaxed">
+                        Sviluppato con il Centro Paganini (Genova). Sonorizza il gesto corporeo: il suono diventa il riflesso acustico tangibile del movimento nello spazio.
                     </p>
                 </div>
             </div>
         </section>
 
         <!-- SEZIONE 3: SMIR E TABULA RASA -->
-        <section id="ia" class="mb-32">
-            <div class="glass-card p-10 bg-gradient-to-br from-sky-500/10 to-purple-500/10">
-                <span class="section-tag bg-sky-500/20 text-sky-400">SMIR: Sistemi Musicali Interattivi Riflessivi</span>
-                <h2 class="serif text-4xl font-bold mb-6 italic">L'Essenza degli <span class="text-sky-400">SMIR</span></h2>
-                <div class="grid lg:grid-cols-2 gap-12">
+        <section id="ia" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
+            <div class="glass-card p-6 md:p-12 lg:p-16 relative overflow-hidden">
+                <!-- Decorative gradient inside card -->
+                <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-secondary-glow/20 to-transparent rounded-full blur-[80px] pointer-events-none"></div>
+                
+                <span class="section-tag bg-secondary-glow/10 text-secondary-glow border-secondary-glow/20">SMIR Technology</span>
+                <h2 class="font-serif text-4xl md:text-5xl font-bold mb-8 md:mb-10 italic relative z-10">L'Essenza degli <span class="gradient-text">SMIR</span></h2>
+                
+                <div class="grid lg:grid-cols-2 gap-10 md:gap-16 relative z-10">
                     <div>
-                        <p class="text-slate-300 leading-relaxed mb-6">
-                            Gli <strong>SMIR</strong> sono la tecnologia alla base di MIROR. Si tratta di sistemi di machine-learning progettati per comportarsi come "specchi musicali".
+                        <p class="text-xl text-slate-300 leading-relaxed mb-10 font-light">
+                            Gli <strong>SMIR</strong> (Sistemi Musicali Interattivi Riflessivi) sono il cuore del MIROR: intelligenze artificiali progettate per comportarsi come "specchi musicali" purissimi.
                         </p>
-                        <ul class="space-y-4">
-                            <li class="flex items-start gap-3 p-4 bg-white/5 rounded-xl">
-                                <div class="w-8 h-8 rounded bg-sky-500/20 flex items-center justify-center text-sky-400 font-bold">A</div>
-                                <p class="text-sm text-slate-400"><strong>Tabula Rasa:</strong> Il sistema è inizialmente vuoto. Non possiede regole musicali preconcette (niente database di Bach o Mozart).</p>
+                        <ul class="space-y-6">
+                            <li class="flex items-start gap-5 p-6 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:bg-white/[0.05] transition-colors">
+                                <div class="w-10 h-10 rounded-xl bg-primary-glow/20 flex items-center justify-center text-primary-glow font-bold shrink-0 shadow-[0_0_15px_rgba(0,240,255,0.3)]">1</div>
+                                <div>
+                                    <h5 class="text-white font-bold mb-2">Tabula Rasa</h5>
+                                    <p class="text-slate-400 leading-relaxed">Il sistema è inizialmente vuoto. Non possiede regole musicali preconcette, database o stili preimpostati.</p>
+                                </div>
                             </li>
-                            <li class="flex items-start gap-3 p-4 bg-white/5 rounded-xl">
-                                <div class="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold">B</div>
-                                <p class="text-sm text-slate-400"><strong>Apprendimento Agnostico:</strong> Lo SMIR analizza e apprende lo stile, la grammatica e il fraseggio direttamente dal bambino mentre suona.</p>
+                            <li class="flex items-start gap-5 p-6 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:bg-white/[0.05] transition-colors">
+                                <div class="w-10 h-10 rounded-xl bg-secondary-glow/20 flex items-center justify-center text-secondary-glow font-bold shrink-0 shadow-[0_0_15px_rgba(112,0,255,0.3)]">2</div>
+                                <div>
+                                    <h5 class="text-white font-bold mb-2">Apprendimento Agnostico</h5>
+                                    <p class="text-slate-400 leading-relaxed">Lo SMIR analizza in tempo reale lo stile, la grammatica e il fraseggio direttamente dal bambino mentre suona, apprendendo il suo "linguaggio".</p>
+                                </div>
                             </li>
                         </ul>
                     </div>
-                    <div class="p-8 border border-white/10 rounded-3xl bg-white/5 flex flex-col justify-center">
-                        <h4 class="font-bold text-amber-400 mb-4 uppercase text-xs tracking-widest text-center">Pedagogia del Riflesso</h4>
-                        <p class="text-sm text-slate-400 italic text-center leading-relaxed">
-                            "Uno SMIR non corregge l'errore: lo riflette come una possibilità espressiva, validando l'autonomia creativa del bambino."
+                    <div class="p-8 md:p-10 border border-white/10 rounded-3xl bg-white/[0.02] flex flex-col justify-center backdrop-blur-sm relative group overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <h4 class="font-bold text-accent-glow mb-6 uppercase text-xs tracking-[0.2em] text-center">Pedagogia del Riflesso</h4>
+                        <p class="text-xl text-slate-300 italic text-center leading-relaxed font-serif">
+                            "Uno SMIR non corregge mai l'errore: lo accoglie e lo riflette come una legittima possibilità espressiva, validando profondamente l'autonomia creativa del bambino."
                         </p>
                     </div>
                 </div>
@@ -185,41 +287,53 @@
         </section>
 
         <!-- SEZIONE 4: MECCANISMO TECNICO -->
-        <section id="tecnica" class="mb-32">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <div class="glass-card p-10 border-t-4 border-sky-500">
-                    <h3 class="text-2xl font-bold mb-6">L'Algoritmo della Risonanza</h3>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                            <span class="text-[10px] uppercase tracking-widest text-slate-400">Latenza Strategica</span>
-                            <span class="font-mono text-sky-400 font-bold">400 ms</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                            <span class="text-[10px] uppercase tracking-widest text-slate-400">Durata Specchiata</span>
-                            <span class="font-mono text-purple-400 font-bold">Input ≈ Output</span>
-                        </div>
-                        <div class="flex flex-col p-3 bg-white/5 rounded-lg border border-amber-500/30">
-                            <div class="flex justify-between items-center">
-                                <span class="text-[10px] uppercase tracking-widest text-slate-400">Turn Taking</span>
-                                <span class="font-mono text-amber-400 font-bold">Stop all'interruzione</span>
+        <section id="tecnica" class="mb-16 md:mb-20 reveal pt-12 md:pt-20">
+            <div class="grid lg:grid-cols-2 gap-10 md:gap-16 items-center">
+                <div class="glass-card p-6 md:p-12 border-t-2 border-t-primary-glow">
+                    <h3 class="text-3xl font-bold mb-8 text-white">L'Algoritmo della Risonanza</h3>
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center p-5 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:border-primary-glow/30 transition-colors">
+                            <div class="flex flex-col">
+                                <span class="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Latenza Strategica</span>
+                                <span class="text-slate-400 text-sm">Il tempo di attesa perfetto</span>
                             </div>
-                            <p class="text-[9px] text-slate-500 mt-2 italic leading-tight">Leadership dell'utente: se il bambino riprende a suonare, lo SMIR tace immediatamente.</p>
+                            <span class="font-mono text-xl text-primary-glow font-bold shadow-[0_0_10px_rgba(0,240,255,0.2)]">400 ms</span>
+                        </div>
+                        <div class="flex justify-between items-center p-5 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:border-secondary-glow/30 transition-colors">
+                            <div class="flex flex-col">
+                                <span class="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Durata Specchiata</span>
+                                <span class="text-slate-400 text-sm">Bilanciamento del dialogo</span>
+                            </div>
+                            <span class="font-mono text-xl text-secondary-glow font-bold">Input ≈ Output</span>
+                        </div>
+                        <div class="flex flex-col p-5 bg-accent-glow/5 rounded-2xl border border-accent-glow/20">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs uppercase tracking-widest text-accent-glow font-bold">Turn Taking Dinamico</span>
+                                <span class="font-mono text-white font-bold bg-accent-glow/20 px-3 py-1 rounded-full text-sm">Interruzione</span>
+                            </div>
+                            <p class="text-sm text-slate-400 leading-relaxed">Leadership dell'utente: se il bambino riprende a suonare mentre il sistema sta rispondendo, lo SMIR tace immediatamente, restituendo il controllo.</p>
                         </div>
                     </div>
                 </div>
-                <div class="p-4">
-                    <h4 class="serif text-3xl font-bold mb-4 italic">Flow e Benessere</h4>
-                    <p class="text-slate-400 text-sm italic mb-6">
-                        "La combinazione di sistemi riflessivi e interazione umana favorisce lo stato di Flow."
+                <div class="p-2 md:p-8">
+                    <h4 class="font-serif text-4xl font-bold mb-6 italic text-white">Il Flow e il Benessere</h4>
+                    <p class="text-slate-400 text-lg italic mb-10 border-l-2 border-white/20 pl-6 py-2">
+                        "La combinazione bilanciata di sistemi riflessivi e interazione umana porta naturalmente allo stato di Flow."
                     </p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 bg-white/5 rounded-xl border border-white/10">
-                            <h5 class="text-xs font-bold text-sky-400 uppercase mb-2">Ripetizione</h5>
-                            <p class="text-[10px] text-slate-500">Genera sicurezza e riconoscimento.</p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="p-6 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/[0.05] transition-colors">
+                            <div class="w-10 h-10 rounded-full bg-primary-glow/10 flex items-center justify-center mb-4">
+                                <svg class="w-5 h-5 text-primary-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            </div>
+                            <h5 class="text-sm font-bold text-white uppercase mb-2">Ripetizione</h5>
+                            <p class="text-sm text-slate-400 leading-relaxed">Genera un senso di sicurezza, competenza e riconoscimento emotivo.</p>
                         </div>
-                        <div class="p-4 bg-white/5 rounded-xl border border-white/10">
-                            <h5 class="text-xs font-bold text-purple-400 uppercase mb-2">Variazione</h5>
-                            <p class="text-[10px] text-slate-500">Stimola la curiosità e l'invenzione.</p>
+                        <div class="p-6 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/[0.05] transition-colors">
+                            <div class="w-10 h-10 rounded-full bg-secondary-glow/10 flex items-center justify-center mb-4">
+                                <svg class="w-5 h-5 text-secondary-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <h5 class="text-sm font-bold text-white uppercase mb-2">Variazione</h5>
+                            <p class="text-sm text-slate-400 leading-relaxed">Stimola la curiosità innata, l'invenzione e l'esplorazione autonoma.</p>
                         </div>
                     </div>
                 </div>
@@ -228,51 +342,128 @@
 
     </main>
 
-    <footer class="py-12 border-t border-white/5 text-center">
-        <p class="text-[10px] text-slate-600 uppercase tracking-widest leading-loose">
-            Università di Bologna | Progetto MIROR FP7 | Basato sulle ricerche di Anna Rita Addessi
+    <footer class="py-16 border-t border-white/[0.05] text-center relative z-10 bg-black/40 backdrop-blur-md">
+        <p class="text-xs text-slate-500 uppercase tracking-[0.2em] leading-loose max-w-2xl mx-auto px-6">
+            Università di Bologna | Progetto MIROR FP7 <br>
+            <span class="text-slate-600 mt-2 block">Basato sulle ricerche della Prof.ssa Anna Rita Addessi</span>
         </p>
     </footer>
 
     <script>
+        // Scroll Reveal Logic
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    revealObserver.unobserve(entry.target); // Trigger only once
+                }
+            });
+        }, { threshold: 0.15 });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('bg-black/40', 'backdrop-blur-lg', 'shadow-lg');
+                nav.classList.remove('py-6');
+                nav.classList.add('py-3');
+            } else {
+                nav.classList.remove('bg-black/40', 'backdrop-blur-lg', 'shadow-lg');
+                nav.classList.add('py-6');
+                nav.classList.remove('py-3');
+            }
+        });
+
+        // Advanced Interactive Canvas
         const canvas = document.getElementById('neuronCanvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
+        let mouse = { x: null, y: null };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        window.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
 
         function init() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             particles = [];
-            for(let i=0; i<65; i++) {
+            // Più particelle per un effetto più denso
+            const particleCount = Math.min(window.innerWidth / 15, 120); 
+            
+            for(let i = 0; i < particleCount; i++) {
                 particles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 0.3,
-                    vy: (Math.random() - 0.5) * 0.3
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    baseSize: Math.random() * 1.5 + 0.5
                 });
             }
         }
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "rgba(14, 165, 233, 0.4)";
-            ctx.strokeStyle = "rgba(139, 92, 246, 0.1)";
             
             particles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy;
-                if(p.x<0 || p.x>canvas.width) p.vx *= -1;
-                if(p.y<0 || p.y>canvas.height) p.vy *= -1;
+                // Movimento base
+                p.x += p.vx; 
+                p.y += p.vy;
                 
+                // Rimbalzo sui bordi
+                if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                // Interazione col mouse (repulsione magnetica)
+                if(mouse.x != null) {
+                    let dx = mouse.x - p.x;
+                    let dy = mouse.y - p.y;
+                    let distance = Math.hypot(dx, dy);
+                    const maxDistance = 180;
+                    
+                    if(distance < maxDistance) {
+                        let force = (maxDistance - distance) / maxDistance;
+                        let directionX = dx / distance;
+                        let directionY = dy / distance;
+                        p.x -= directionX * force * 2;
+                        p.y -= directionY * force * 2;
+                    }
+                }
+                
+                // Disegna particella (Nodo)
+                ctx.fillStyle = "rgba(0, 240, 255, 0.4)";
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 1.2, 0, Math.PI*2);
+                ctx.arc(p.x, p.y, p.baseSize, 0, Math.PI*2);
                 ctx.fill();
 
-                for(let j=i+1; j<particles.length; j++) {
-                    let d = Math.hypot(p.x-particles[j].x, p.y-particles[j].y);
-                    if(d < 180) {
+                // Disegna connessioni (Sinapsi)
+                for(let j = i + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let d = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    const maxConnectionDist = 140;
+                    
+                    if(d < maxConnectionDist) {
+                        let opacity = 1 - (d / maxConnectionDist);
+                        // Il colore della linea varia in base alla posizione (gradiente simulato)
+                        if (i % 2 === 0) {
+                            ctx.strokeStyle = `rgba(112, 0, 255, ${opacity * 0.25})`; // Purple
+                        } else {
+                            ctx.strokeStyle = `rgba(0, 240, 255, ${opacity * 0.25})`; // Cyan
+                        }
+                        
+                        ctx.lineWidth = 0.8;
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.lineTo(p2.x, p2.y);
                         ctx.stroke();
                     }
                 }
