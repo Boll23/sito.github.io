@@ -124,6 +124,107 @@
 
         .animation-delay-2000 { animation-delay: 2s; }
         .animation-delay-4000 { animation-delay: 4s; }
+
+        /* Piano CSS Refined */
+        .piano-wrapper {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            display: inline-block;
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+        .piano-container {
+            position: relative;
+            height: 220px;
+            display: flex;
+            justify-content: center;
+            user-select: none;
+            touch-action: none;
+            perspective: 800px;
+        }
+        .white-key {
+            width: 50px;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-bottom: 4px solid #ddd;
+            border-radius: 0 0 12px 12px;
+            box-shadow: inset 0 -4px 10px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 15px;
+            color: rgba(0,0,0,0.3);
+            font-weight: bold;
+            font-size: 12px;
+            transform-origin: top;
+        }
+        .white-key:hover { background: linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0.8)); }
+        .black-key {
+            width: 32px;
+            height: 65%;
+            background: linear-gradient(to bottom, #333, #000);
+            border: 1px solid #000;
+            border-bottom: 3px solid #222;
+            border-radius: 0 0 8px 8px;
+            box-shadow: inset 0 2px 2px rgba(255,255,255,0.2), 0 8px 10px rgba(0,0,0,0.6);
+            z-index: 2;
+            position: absolute;
+            top: 0;
+            left: 100%;
+            margin-left: -16px;
+            cursor: pointer;
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 10px;
+            color: rgba(255,255,255,0.3);
+            font-size: 10px;
+            font-weight: bold;
+            transform-origin: top;
+        }
+        .key-wrapper {
+            position: relative;
+        }
+        /* Active states */
+        .white-key.active-user { 
+            background: #e0fdff; 
+            box-shadow: inset 0 -4px 20px #00f0ff, 0 0 30px rgba(0,240,255,0.6); 
+            z-index: 3; 
+            border-bottom-width: 1px;
+            transform: rotateX(3deg);
+            color: #00f0ff;
+        }
+        .black-key.active-user { 
+            background: linear-gradient(to bottom, #005566, #002233); 
+            box-shadow: inset 0 2px 5px #00f0ff, 0 0 20px rgba(0,240,255,0.5); 
+            border-bottom-width: 1px;
+            transform: rotateX(3deg);
+            color: #00f0ff;
+        }
+        .white-key.active-ai { 
+            background: #f0e0ff; 
+            box-shadow: inset 0 -4px 20px #7000ff, 0 0 30px rgba(112,0,255,0.6); 
+            z-index: 3; 
+            border-bottom-width: 1px;
+            transform: rotateX(3deg);
+            color: #7000ff;
+        }
+        .black-key.active-ai { 
+            background: linear-gradient(to bottom, #330066, #110022); 
+            box-shadow: inset 0 2px 5px #7000ff, 0 0 20px rgba(112,0,255,0.5); 
+            border-bottom-width: 1px;
+            transform: rotateX(3deg);
+            color: #7000ff;
+        }
     </style>
 </head>
 <body class="antialiased font-sans">
@@ -144,6 +245,7 @@
             <div class="hidden md:flex gap-8 text-[10px] font-bold uppercase tracking-widest">
                 <a href="#neuroscience" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Neuroni Specchio</a>
                 <a href="#applicazioni" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Applicazioni</a>
+                <a href="#demo" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Prova MIROR</a>
                 <a href="#ia" class="text-white/60 hover:text-primary-glow transition-colors duration-300">SMIR & Tabula Rasa</a>
                 <a href="#tecnica" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Algoritmo</a>
             </div>
@@ -244,6 +346,38 @@
             </div>
         </section>
 
+        <!-- SEZIONE DEMO INTERATTIVA -->
+        <section id="demo" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
+            <div class="glass-card p-8 md:p-12 border border-white/10 text-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-primary-glow/5 to-transparent pointer-events-none"></div>
+                <span class="section-tag bg-primary-glow/10 text-primary-glow border-primary-glow/20">Esperienza Interattiva</span>
+                <h2 class="font-serif text-3xl md:text-5xl font-bold mb-4 text-white">Il Mini-SMIR</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto mb-8">
+                    Suona una breve melodia cliccando sui tasti (o usa le lettere <strong>A S D F G H J K</strong> della tastiera). 
+                    Fermati per un secondo e ascolta: il MIROR rifletterà la tua creazione, <strong>a volte ripetendola esattamente, a volte proponendo una variazione</strong> basata sul tuo stile. Se suoni mentre lui "parla", si interromperà cedendoti il turno.
+                </p>
+                
+                <div id="smir-status" class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-sm font-bold text-slate-300 mb-12 transition-colors duration-300 shadow-inner">
+                    <span id="smir-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse shadow-[0_0_10px_currentColor]"></span>
+                    <span id="smir-text" class="tracking-wide uppercase text-xs">In attesa... (Premi Attiva)</span>
+                </div>
+
+                <!-- Keyboard -->
+                <div class="piano-wrapper">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-primary-glow/20 via-secondary-glow/20 to-primary-glow/20 blur-lg opacity-50"></div>
+                    <div class="piano-container relative" id="piano-container" oncontextmenu="return false;">
+                        <!-- Keys generated via JS -->
+                    </div>
+                </div>
+
+                <div class="mt-12">
+                    <button id="init-audio-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-primary-glow to-secondary-glow text-white font-bold hover:scale-105 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.4)] cursor-pointer tracking-wide uppercase text-sm">
+                        Attiva Sintetizzatore Audio
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- SEZIONE 3: SMIR E TABULA RASA -->
         <section id="ia" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
             <div class="glass-card p-6 md:p-12 lg:p-16 relative overflow-hidden">
@@ -292,7 +426,41 @@
                 <div class="glass-card p-6 md:p-12 border-t-2 border-t-primary-glow">
                     <h3 class="text-3xl font-bold mb-8 text-white">L'Algoritmo della Risonanza</h3>
                     <div class="space-y-6">
-                        <div class="flex justify-between items-center p-5 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:border-primary-glow/30 transition-colors">
+                        <div class="flex flex-col p-6 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:border-primary-glow/50 transition-colors group relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-b from-primary-glow/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                            
+                            <div class="flex justify-between items-center mb-5 relative z-10">
+                                <span class="text-sm uppercase tracking-widest text-primary-glow font-bold">Il Cuore del Sistema</span>
+                                <span class="font-mono text-white font-bold bg-primary-glow/20 px-3 py-1 rounded-full text-xs text-center shadow-[0_0_15px_rgba(0,240,255,0.3)]">Continuator / Markov</span>
+                            </div>
+                            
+                            <p class="text-sm text-slate-300 leading-relaxed mb-4 relative z-10">
+                                Sviluppato da François Pachet, il <strong>Continuator</strong> è l'architettura matematica su cui si basa MIROR. È un sistema puramente "agnostico": non possiede regole preimpostate su scale, armonia o generi musicali.
+                            </p>
+                            
+                            <div class="space-y-4 relative z-10 mt-2">
+                                <div class="flex gap-3 items-start">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
+                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Catene di Markov a ordine variabile:</strong> L'algoritmo costruisce in tempo reale un "albero delle probabilità". Analizza l'input del bambino e calcola la probabilità statistica che a una certa sequenza di note o ritmi ne segua un'altra.</p>
+                                </div>
+                                
+                                <div class="ml-4 p-4 rounded-xl bg-black/40 border border-primary-glow/20 relative">
+                                    <div class="absolute -left-4 top-1/2 w-4 h-[1px] bg-primary-glow/20"></div>
+                                    <p class="text-[11px] text-primary-glow font-bold uppercase tracking-widest mb-2">Esempio Pratico:</p>
+                                    <p class="text-xs text-slate-400 leading-relaxed">Se il bambino suona <strong class="text-slate-300">DO-MI-SOL-DO-MI-FA</strong>, il sistema impara che dopo un <strong>DO</strong> c'è il 100% di probabilità che arrivi un <strong>MI</strong>. Ma dopo un <strong>MI</strong> l'albero si dirama: 50% di probabilità di andare sul <strong>SOL</strong> e 50% di andare sul <strong>FA</strong>.</p>
+                                </div>
+
+                                <div class="flex gap-3 items-start mt-4">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
+                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Generazione Coerente:</strong> Quando risponde, il sistema lancia dei "dadi statistici" e naviga questo albero. Non suona note a caso, ma genera melodie inedite che seguono la stessa identica grammatica appena inventata dal bambino.</p>
+                                </div>
+                                <div class="flex gap-3 items-start">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
+                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Scaffolding Pedagogico:</strong> All'inizio l'algoritmo predilige la ripetizione esatta (Effetto Specchio) per stabilire il contatto. Man mano che il dialogo evolve, introduce variazioni stilistiche via via più complesse per stimolare la creatività e mantenere il <em>Flow</em>.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-5 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:border-secondary-glow/30 transition-colors">
                             <div class="flex flex-col">
                                 <span class="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Latenza Strategica</span>
                                 <span class="text-slate-400 text-sm">Il tempo di attesa perfetto</span>
@@ -473,6 +641,186 @@
 
         window.onload = () => { init(); animate(); }
         window.onresize = init;
+
+        // --- MINI-SMIR ENGINE ---
+        const audioCtxRef = { current: null };
+        const pianoKeys = [
+            { note: 'C4', freq: 261.63, type: 'white', key: 'a' },
+            { note: 'C#4', freq: 277.18, type: 'black', key: 'w' },
+            { note: 'D4', freq: 293.66, type: 'white', key: 's' },
+            { note: 'D#4', freq: 311.13, type: 'black', key: 'e' },
+            { note: 'E4', freq: 329.63, type: 'white', key: 'd' },
+            { note: 'F4', freq: 349.23, type: 'white', key: 'f' },
+            { note: 'F#4', freq: 369.99, type: 'black', key: 't' },
+            { note: 'G4', freq: 392.00, type: 'white', key: 'g' },
+            { note: 'G#4', freq: 415.30, type: 'black', key: 'y' },
+            { note: 'A4', freq: 440.00, type: 'white', key: 'h' },
+            { note: 'A#4', freq: 466.16, type: 'black', key: 'u' },
+            { note: 'B4', freq: 493.88, type: 'white', key: 'j' },
+            { note: 'C5', freq: 523.25, type: 'white', key: 'k' }
+        ];
+
+        const pianoContainer = document.getElementById('piano-container');
+        const keyElements = {};
+        
+        // Render Piano
+        pianoKeys.forEach((k, idx) => {
+            if (k.type === 'white') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'key-wrapper';
+                const wKey = document.createElement('div');
+                wKey.className = 'white-key';
+                wKey.dataset.note = k.note;
+                wKey.innerHTML = `<span>${k.key.toUpperCase()}</span>`;
+                wrapper.appendChild(wKey);
+                
+                // Add black key if next is black
+                if (idx + 1 < pianoKeys.length && pianoKeys[idx+1].type === 'black') {
+                    const bKey = document.createElement('div');
+                    bKey.className = 'black-key';
+                    bKey.dataset.note = pianoKeys[idx+1].note;
+                    bKey.innerHTML = `<span>${pianoKeys[idx+1].key.toUpperCase()}</span>`;
+                    wrapper.appendChild(bKey);
+                    keyElements[pianoKeys[idx+1].note] = bKey;
+                }
+                pianoContainer.appendChild(wrapper);
+                keyElements[k.note] = wKey;
+            }
+        });
+
+        // Synth Setup
+        function playTone(freq, duration = 200) {
+            if (!audioCtxRef.current) return;
+            const osc = audioCtxRef.current.createOscillator();
+            const gain = audioCtxRef.current.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtxRef.current.destination);
+            
+            osc.start();
+            gain.gain.setValueAtTime(0.5, audioCtxRef.current.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtxRef.current.currentTime + (duration/1000));
+            setTimeout(() => osc.stop(), duration + 50);
+        }
+
+        // Logic
+        let userSequence = [];
+        let isAiPlaying = false;
+        let aiTimeouts = [];
+        let turnTimeout = null;
+        const statusText = document.getElementById('smir-text');
+        const statusInd = document.getElementById('smir-indicator');
+        const statusBox = document.getElementById('smir-status');
+
+        function setStatus(mode) {
+            statusBox.className = 'inline-flex items-center gap-3 px-6 py-3 rounded-full border text-sm font-bold transition-all duration-300 shadow-inner ' + 
+                (mode === 'user' ? 'bg-primary-glow/20 border-primary-glow/50 text-primary-glow shadow-[0_0_15px_rgba(0,240,255,0.2)]' : 
+                 mode === 'ai' ? 'bg-secondary-glow/20 border-secondary-glow/50 text-secondary-glow shadow-[0_0_15px_rgba(112,0,255,0.2)]' : 
+                 'bg-white/5 border-white/10 text-slate-300');
+            statusInd.className = 'w-2.5 h-2.5 rounded-full animate-pulse shadow-[0_0_10px_currentColor] ' + 
+                (mode === 'user' ? 'bg-primary-glow' : mode === 'ai' ? 'bg-secondary-glow' : 'bg-slate-500');
+            statusText.className = 'tracking-wide uppercase text-xs ' + 
+                (mode === 'user' ? 'text-primary-glow' : mode === 'ai' ? 'text-secondary-glow' : 'text-slate-300');
+            statusText.innerText = mode === 'user' ? 'Ascolto...' : mode === 'ai' ? 'MIROR risponde...' : 'In attesa... (Tocca a te)';
+        }
+
+        function interruptAi() {
+            if(isAiPlaying) {
+                isAiPlaying = false;
+                aiTimeouts.forEach(clearTimeout);
+                aiTimeouts = [];
+                Object.values(keyElements).forEach(el => el.classList.remove('active-ai', 'active-user'));
+                userSequence = []; 
+                setStatus('user');
+            }
+        }
+
+        function playKey(note, isAi = false) {
+            if(!audioCtxRef.current) return;
+            if(!isAi && isAiPlaying) interruptAi();
+            if(!isAi && !isAiPlaying) setStatus('user');
+
+            const keyData = pianoKeys.find(k => k.note === note);
+            if(!keyData) return;
+            
+            playTone(keyData.freq);
+            const el = keyElements[note];
+            const activeClass = isAi ? 'active-ai' : 'active-user';
+            el.classList.add(activeClass);
+            setTimeout(() => el.classList.remove(activeClass), 200);
+
+            if (!isAi) {
+                userSequence.push({ note, time: Date.now() });
+                clearTimeout(turnTimeout);
+                turnTimeout = setTimeout(triggerMirror, 1000); // 1 sec silence = end of turn
+            }
+        }
+
+        function triggerMirror() {
+            if (userSequence.length === 0) return;
+            setStatus('ai');
+            isAiPlaying = true;
+            
+            const firstTime = userSequence[0].time;
+            const latency = 400; // Latenza Strategica
+            
+            // --- Algoritmo di Variazione MIROR ---
+            // Il sistema apprende il "vocabolario" (le note suonate) e il ritmo.
+            // A volte ripete, a volte varia per mantenere viva l'interazione.
+            let responseNotes = [];
+            const r = Math.random();
+            
+            if (r < 0.4 || userSequence.length <= 1) {
+                // 40% delle volte: Ripetizione Esatta (Mirror puro)
+                responseNotes = userSequence.map(e => e.note);
+            } else if (r < 0.7) {
+                // 30% delle volte: Retrogrado (Inversione dell'ordine delle note, ma stesso ritmo)
+                responseNotes = userSequence.map(e => e.note).reverse();
+            } else {
+                // 30% delle volte: Variazione Stilistica (Usa solo le note appena suonate dall'utente, riordinate casualmente)
+                const vocabulary = userSequence.map(e => e.note);
+                responseNotes = userSequence.map(() => vocabulary[Math.floor(Math.random() * vocabulary.length)]);
+            }
+            
+            userSequence.forEach((evt, i) => {
+                const delay = (evt.time - firstTime) + latency;
+                const noteToPlay = responseNotes[i];
+                const t = setTimeout(() => {
+                    if (isAiPlaying) playKey(noteToPlay, true);
+                }, delay);
+                aiTimeouts.push(t);
+            });
+
+            const lastDelay = (userSequence[userSequence.length-1].time - firstTime) + latency + 300;
+            aiTimeouts.push(setTimeout(() => {
+                if (isAiPlaying) {
+                    isAiPlaying = false;
+                    userSequence = [];
+                    setStatus('idle');
+                }
+            }, lastDelay));
+        }
+
+        // Event Listeners for UI
+        pianoContainer.addEventListener('mousedown', (e) => {
+            const keyEl = e.target.closest('[data-note]');
+            if(keyEl) playKey(keyEl.dataset.note);
+        });
+
+        document.getElementById('init-audio-btn').addEventListener('click', function() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtxRef.current = new AudioContext();
+            this.style.display = 'none';
+            setStatus('idle');
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) return; 
+            const key = e.key.toLowerCase();
+            const kData = pianoKeys.find(k => k.key === key);
+            if(kData) playKey(kData.note);
+        });
     </script>
 </body>
 </html>
