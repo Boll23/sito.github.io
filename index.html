@@ -510,28 +510,36 @@
                             </div>
                             
                             <p class="text-sm text-slate-300 leading-relaxed mb-4 relative z-10">
-                                Sviluppato da François Pachet, il <strong>Continuator</strong> è l'architettura matematica su cui si basa MIROR. È un sistema puramente "agnostico": non possiede regole preimpostate su scale, armonia o generi musicali.
+                                Sviluppato da François Pachet al Sony CSL di Parigi, il <strong>Continuator</strong> è l'architettura matematica su cui si basa MIROR. È un sistema puramente "agnostico": non possiede regole preimpostate su scale, armonia o generi musicali.
                             </p>
                             
                             <div class="space-y-4 relative z-10 mt-2">
                                 <div class="flex gap-3 items-start">
                                     <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
-                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Catene di Markov a ordine variabile:</strong> L'algoritmo costruisce in tempo reale un "albero delle probabilità". Analizza l'input del bambino e calcola la probabilità statistica che a una certa sequenza di note o ritmi ne segua un'altra.</p>
+                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Prefix Tree + Markov a ordine variabile:</strong> Il sistema memorizza l'intera sessione in un <em>albero dei prefissi</em>. A differenza di un modello a ordine fisso (che guarda solo l'ultima nota), l'ordine si adatta: quando i dati sono scarsi usa contesti brevi (1–2 note), quando il corpus è ricco sfrutta catene più lunghe per catturare sfumature di fraseggio e ritmo.</p>
                                 </div>
                                 
                                 <div class="ml-4 p-4 rounded-xl bg-black/40 border border-primary-glow/20 relative">
                                     <div class="absolute -left-4 top-1/2 w-4 h-[1px] bg-primary-glow/20"></div>
                                     <p class="text-[11px] text-primary-glow font-bold uppercase tracking-widest mb-2">Esempio Pratico:</p>
-                                    <p class="text-xs text-slate-400 leading-relaxed">Se il bambino suona <strong class="text-slate-300">DO-MI-SOL-DO-MI-FA</strong>, il sistema impara che dopo un <strong>DO</strong> c'è il 100% di probabilità che arrivi un <strong>MI</strong>. Ma dopo un <strong>MI</strong> l'albero si dirama: 50% di probabilità di andare sul <strong>SOL</strong> e 50% di andare sul <strong>FA</strong>.</p>
+                                    <p class="text-xs text-slate-400 leading-relaxed">Se il bambino suona <strong class="text-slate-300">DO-MI-SOL-DO-MI-FA</strong>, il sistema impara che dopo un <strong>DO</strong> c'è il 100% di probabilità che arrivi un <strong>MI</strong>. Ma dopo un <strong>MI</strong> l'albero si dirama: 50% di probabilità di andare sul <strong>SOL</strong> e 50% di andare sul <strong>FA</strong>. Con un contesto più lungo (DO-MI), la previsione diventa ancora più precisa perché il sistema ha visto quella specifica sequenza due volte.</p>
                                 </div>
 
                                 <div class="flex gap-3 items-start mt-4">
                                     <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
-                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Generazione Coerente:</strong> Quando risponde, il sistema lancia dei "dadi statistici" e naviga questo albero. Non suona note a caso, ma genera melodie inedite che seguono la stessa identica grammatica appena inventata dal bambino.</p>
+                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Corpus cumulativo di sessione:</strong> Il modello non resetta tra un turno e l'altro — accumula tutto ciò che il bambino suona durante l'intera sessione. Più si dialoga, più il sistema conosce a fondo lo stile personale dell'utente e genera risposte stilisticamente coerenti.</p>
                                 </div>
                                 <div class="flex gap-3 items-start">
                                     <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
-                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Scaffolding Pedagogico:</strong> All'inizio l'algoritmo predilige la ripetizione esatta (Effetto Specchio) per stabilire il contatto. Man mano che il dialogo evolve, introduce variazioni stilistiche via via più complesse per stimolare la creatività e mantenere il <em>Flow</em>.</p>
+                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Generazione per campionamento stocastico:</strong> Quando risponde, il sistema lancia dei "dadi statistici" e naviga l'albero delle probabilità. Non suona note a caso, ma genera melodie inedite che rispettano la stessa grammatica musicale inventata dal bambino.</p>
+                                </div>
+                                <div class="flex gap-3 items-start">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
+                                    <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Scaffolding Pedagogico:</strong> All'inizio, con pochi dati, l'algoritmo predilige la ripetizione esatta (<em>Effetto Specchio</em>) per stabilire il contatto. Man mano che il dialogo si arricchisce, introduce variazioni stilistiche sempre più elaborate per stimolare la creatività e mantenere il <em>Flow</em>.</p>
+                                </div>
+                                <div class="flex gap-3 items-start p-3 rounded-xl bg-secondary-glow/5 border border-secondary-glow/20">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-secondary-glow mt-1.5 shrink-0"></div>
+                                    <p class="text-xs text-slate-500 leading-relaxed italic"><strong class="text-slate-400">Nota sulla demo interattiva:</strong> Il Mini-SMIR qui sopra implementa una versione semplificata a Markov di primo ordine (bigram) con corpus cumulativo di sessione — una fedele approssimazione pedagogica del vero Continuator, accessibile senza server o MIDI.</p>
                                 </div>
                             </div>
                         </div>
