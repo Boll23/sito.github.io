@@ -125,6 +125,44 @@
         .animation-delay-2000 { animation-delay: 2s; }
         .animation-delay-4000 { animation-delay: 4s; }
 
+        /* 2026 Bento Grid & Noise */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 220px);
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+        }
+        .bento-item {
+            @apply glass-card p-8 flex flex-col justify-between h-full relative overflow-hidden;
+        }
+        .noise-overlay {
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+        .magnetic-cursor {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.15s ease-out, width 0.3s ease, height 0.3s ease;
+            display: none;
+        }
+        @media (pointer: fine) { .magnetic-cursor { display: block; } }
+
         /* Piano CSS Refined */
         .piano-wrapper {
             background: rgba(255, 255, 255, 0.02);
@@ -237,6 +275,7 @@
     </div>
 
     <canvas id="neuronCanvas" class="neuron-canvas"></canvas>
+    <div id="cursor" class="magnetic-cursor"></div>
 
     <!-- Navigazione -->
     <nav class="fixed top-0 w-full z-50 px-6 py-6 transition-all duration-300" id="navbar">
@@ -309,39 +348,58 @@
             </div>
         </section>
 
-        <!-- SEZIONE 2: LE APPLICAZIONI PRATICHE -->
+        <!-- SEZIONE 2: LE APPLICAZIONI PRATICHE (BENTO GRID 2026) -->
         <section id="applicazioni" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
             <div class="text-center mb-12 md:mb-20">
                 <span class="section-tag bg-secondary-glow/10 text-secondary-glow border-secondary-glow/20">La Piattaforma MIROR</span>
-                <h2 class="font-serif text-4xl md:text-5xl font-bold mt-4">Le Tre Dimensioni della Creatività</h2>
+                <h2 class="font-serif text-4xl md:text-5xl font-bold mt-4">Le Dimensioni della Creatività</h2>
             </div>
             
-            <div class="grid md:grid-cols-3 gap-6 md:gap-8">
-                <!-- MIROR-Impro -->
-                <div class="glass-card p-6 md:p-10 border-b-2 border-b-primary-glow group">
-                    <div class="w-16 h-16 rounded-2xl bg-primary-glow/10 flex items-center justify-center mb-6 md:mb-8 text-3xl group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(0,240,255,0.2)]">🎹</div>
-                    <h4 class="font-bold text-xl mb-4 text-white">MIROR-Impro</h4>
-                    <p class="text-slate-400 leading-relaxed">
-                        Dialogo libero sulla tastiera. Il sistema imita e varia l'input del bambino, stimolando l'esplorazione sonora e l'auto-ascolto critico in tempo reale.
-                    </p>
+            <div class="bento-grid">
+                <!-- MIROR-Impro (Large Item) -->
+                <div class="bento-item col-span-2 row-span-2 group border-primary-glow/20 hover:border-primary-glow/40">
+                    <div class="noise-overlay"></div>
+                    <div>
+                        <div class="w-16 h-16 rounded-2xl bg-primary-glow/10 flex items-center justify-center mb-8 text-3xl group-hover:scale-110 transition-transform duration-500 shadow-[0_0_30px_rgba(0,240,255,0.2)]">🎹</div>
+                        <h4 class="font-bold text-3xl mb-4 text-white">MIROR-Impro</h4>
+                        <p class="text-slate-400 text-lg leading-relaxed mb-6">
+                            Il cuore pulsante del sistema. Un dialogo libero sulla tastiera dove la macchina imita e varia l'input del bambino in tempo reale.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-4 text-primary-glow font-bold text-xs tracking-widest uppercase">
+                        <span class="px-3 py-1 rounded-full bg-primary-glow/10 border border-primary-glow/20">Real-time Reflexion</span>
+                        <span class="px-3 py-1 rounded-full bg-primary-glow/10 border border-primary-glow/20">Flow State</span>
+                    </div>
                 </div>
 
                 <!-- MIROR-Compo -->
-                <div class="glass-card p-6 md:p-10 border-b-2 border-b-secondary-glow group">
-                    <div class="w-16 h-16 rounded-2xl bg-secondary-glow/10 flex items-center justify-center mb-6 md:mb-8 text-3xl group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(112,0,255,0.2)]">🎼</div>
-                    <h4 class="font-bold text-xl mb-4 text-white">MIROR-Compo</h4>
-                    <p class="text-slate-400 leading-relaxed">
-                        Permette di manipolare frasi musicali e "oggetti sonori". Il bambino co-regola la struttura musicale complessa insieme all'intelligenza artificiale.
-                    </p>
+                <div class="bento-item col-span-2 row-span-1 group border-secondary-glow/20 hover:border-secondary-glow/40">
+                    <div class="noise-overlay"></div>
+                    <div class="flex gap-8 items-start">
+                        <div class="w-14 h-14 rounded-2xl bg-secondary-glow/10 flex items-center justify-center text-2xl shrink-0 group-hover:rotate-12 transition-transform duration-500">🎼</div>
+                        <div>
+                            <h4 class="font-bold text-xl mb-2 text-white">MIROR-Compo</h4>
+                            <p class="text-slate-400 text-sm leading-relaxed">
+                                Manipolazione di frasi musicali e oggetti sonori. Co-regolazione della struttura complessa.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- MIROR-Body Gesture -->
-                <div class="glass-card p-6 md:p-10 border-b-2 border-b-orange-500 group">
-                    <div class="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6 md:mb-8 text-3xl group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(249,115,22,0.2)]">🤸</div>
-                    <h4 class="font-bold text-xl mb-4 text-white">MIROR-Body</h4>
-                    <p class="text-slate-400 leading-relaxed">
-                        Sviluppato con il Centro Paganini (Genova). Sonorizza il gesto corporeo: il suono diventa il riflesso acustico tangibile del movimento nello spazio.
-                    </p>
+                <div class="bento-item col-span-1 row-span-1 group border-orange-500/20 hover:border-orange-500/40">
+                    <div class="noise-overlay"></div>
+                    <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 text-xl group-hover:scale-110 transition-transform duration-500">🤸</div>
+                    <h4 class="font-bold text-white mb-2">Body Gesture</h4>
+                    <p class="text-slate-500 text-xs leading-relaxed">Sonorizzazione del gesto corporeo e del movimento spaziale.</p>
+                </div>
+
+                <!-- Multimodal -->
+                <div class="bento-item col-span-1 row-span-1 group border-accent-glow/20 hover:border-accent-glow/40">
+                    <div class="noise-overlay"></div>
+                    <div class="w-12 h-12 rounded-xl bg-accent-glow/10 flex items-center justify-center mb-4 text-xl group-hover:scale-110 transition-transform duration-500">🧠</div>
+                    <h4 class="font-bold text-white mb-2">Multimodal</h4>
+                    <p class="text-slate-500 text-xs leading-relaxed">Integrazione di vista, udito e propriocezione musicale.</p>
                 </div>
             </div>
         </section>
@@ -370,10 +428,27 @@
                     </div>
                 </div>
 
-                <div class="mt-12">
+                <div class="mt-12 flex flex-col md:flex-row gap-6 items-center justify-center">
                     <button id="init-audio-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-primary-glow to-secondary-glow text-white font-bold hover:scale-105 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.4)] cursor-pointer tracking-wide uppercase text-sm">
                         Attiva Sintetizzatore Audio
                     </button>
+                    
+                    <!-- AI HUD (NEW 2026) -->
+                    <div id="ai-hud" class="hidden opacity-0 translate-y-4 transition-all duration-700 glass-card p-4 border border-white/10 flex flex-col gap-3 min-w-[200px]">
+                        <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                            <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Neural Probabilities</span>
+                            <div class="w-2 h-2 rounded-full bg-primary-glow animate-pulse"></div>
+                        </div>
+                        <div id="hud-content" class="space-y-2">
+                            <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                                <span>AWAITING INPUT...</span>
+                                <span>0%</span>
+                            </div>
+                            <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                                <div class="bg-primary-glow h-full w-0 transition-all duration-300"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -545,27 +620,47 @@
             }
         });
 
-        // Advanced Interactive Canvas
+        // Advanced Interactive Canvas (2026 Enhanced)
         const canvas = document.getElementById('neuronCanvas');
         const ctx = canvas.getContext('2d');
+        const cursor = document.getElementById('cursor');
         let particles = [];
+        let pulses = []; // Pulses from piano
         let mouse = { x: null, y: null };
 
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.x;
-            mouse.y = e.y;
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            if(cursor) {
+                cursor.style.left = mouse.x - 10 + 'px';
+                cursor.style.top = mouse.y - 10 + 'px';
+            }
         });
 
-        window.addEventListener('mouseout', () => {
-            mouse.x = null;
-            mouse.y = null;
+        // Magnetic effect on interactive elements
+        document.querySelectorAll('button, a, .white-key, .black-key').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.style.transform = 'scale(2.5)';
+                cursor.style.background = 'transparent';
+                cursor.style.border = '1px solid white';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.style.transform = 'scale(1)';
+                cursor.style.background = 'white';
+                cursor.style.border = 'none';
+            });
         });
+
+        function createSynapticPulse(x, y, color = 'rgba(0, 240, 255, 0.8)') {
+            pulses.push({
+                x, y, radius: 0, maxRadius: 300, opacity: 1, color
+            });
+        }
 
         function init() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             particles = [];
-            // Più particelle per un effetto più denso
             const particleCount = Math.min(window.innerWidth / 15, 120); 
             
             for(let i = 0; i < particleCount; i++) {
@@ -574,7 +669,8 @@
                     y: Math.random() * canvas.height,
                     vx: (Math.random() - 0.5) * 0.4,
                     vy: (Math.random() - 0.5) * 0.4,
-                    baseSize: Math.random() * 1.5 + 0.5
+                    baseSize: Math.random() * 1.5 + 0.5,
+                    pulseFactor: 0
                 });
             }
         }
@@ -582,53 +678,64 @@
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Handle Pulses
+            pulses.forEach((pulse, index) => {
+                pulse.radius += 10;
+                pulse.opacity -= 0.02;
+                if (pulse.opacity <= 0) {
+                    pulses.splice(index, 1);
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = pulse.color.replace('0.8', pulse.opacity * 0.4);
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+
             particles.forEach((p, i) => {
-                // Movimento base
                 p.x += p.vx; 
                 p.y += p.vy;
-                
-                // Rimbalzo sui bordi
                 if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
                 if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
-                // Interazione col mouse (repulsione magnetica)
+                // React to pulses
+                pulses.forEach(pulse => {
+                    const d = Math.hypot(p.x - pulse.x, p.y - pulse.y);
+                    if (Math.abs(d - pulse.radius) < 20) {
+                        p.pulseFactor = 1;
+                    }
+                });
+                p.pulseFactor *= 0.95;
+
                 if(mouse.x != null) {
                     let dx = mouse.x - p.x;
                     let dy = mouse.y - p.y;
                     let distance = Math.hypot(dx, dy);
-                    const maxDistance = 180;
-                    
-                    if(distance < maxDistance) {
-                        let force = (maxDistance - distance) / maxDistance;
-                        let directionX = dx / distance;
-                        let directionY = dy / distance;
-                        p.x -= directionX * force * 2;
-                        p.y -= directionY * force * 2;
+                    if(distance < 180) {
+                        let force = (180 - distance) / 180;
+                        p.x -= (dx / distance) * force * 2;
+                        p.y -= (dy / distance) * force * 2;
                     }
                 }
                 
-                // Disegna particella (Nodo)
-                ctx.fillStyle = "rgba(0, 240, 255, 0.4)";
+                ctx.fillStyle = p.pulseFactor > 0.1 ? `rgba(255, 255, 255, ${p.pulseFactor})` : "rgba(0, 240, 255, 0.4)";
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.baseSize, 0, Math.PI*2);
+                ctx.arc(p.x, p.y, p.baseSize + (p.pulseFactor * 2), 0, Math.PI*2);
                 ctx.fill();
 
-                // Disegna connessioni (Sinapsi)
                 for(let j = i + 1; j < particles.length; j++) {
                     let p2 = particles[j];
                     let d = Math.hypot(p.x - p2.x, p.y - p2.y);
-                    const maxConnectionDist = 140;
-                    
-                    if(d < maxConnectionDist) {
-                        let opacity = 1 - (d / maxConnectionDist);
-                        // Il colore della linea varia in base alla posizione (gradiente simulato)
-                        if (i % 2 === 0) {
-                            ctx.strokeStyle = `rgba(112, 0, 255, ${opacity * 0.25})`; // Purple
+                    if(d < 140) {
+                        let opacity = (1 - (d / 140)) * 0.25;
+                        ctx.strokeStyle = i % 2 === 0 ? `rgba(112, 0, 255, ${opacity})` : `rgba(0, 240, 255, ${opacity})`;
+                        if (p.pulseFactor > 0.5) {
+                            ctx.strokeStyle = `rgba(255, 255, 255, ${p.pulseFactor * 0.5})`;
+                            ctx.lineWidth = 1.5;
                         } else {
-                            ctx.strokeStyle = `rgba(0, 240, 255, ${opacity * 0.25})`; // Cyan
+                            ctx.lineWidth = 0.8;
                         }
-                        
-                        ctx.lineWidth = 0.8;
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(p2.x, p2.y);
@@ -709,6 +816,63 @@
         let isAiPlaying = false;
         let aiTimeouts = [];
         let turnTimeout = null;
+
+        // === MODELLO DI MARKOV (fedele al Continuator di Pachet) ===
+        // Tabella di transizione: { nota_corrente -> { nota_successiva -> conteggio } }
+        // Persiste per tutta la sessione, si arricchisce ad ogni turno.
+        let markovModel = {};
+        let sessionCorpus = []; // Tutte le note suonate nella sessione
+
+        function learnFromSequence(sequence) {
+            // Accumula le note nel corpus globale della sessione
+            sequence.forEach(e => sessionCorpus.push(e.note));
+            // Aggiorna la tabella di transizione con i bigram della sequenza
+            for (let i = 0; i < sequence.length - 1; i++) {
+                const curr = sequence[i].note;
+                const next = sequence[i + 1].note;
+                if (!markovModel[curr]) markovModel[curr] = {};
+                markovModel[curr][next] = (markovModel[curr][next] || 0) + 1;
+            }
+        }
+
+        function getNextNote(currentNote) {
+            const transitions = markovModel[currentNote];
+            if (!transitions || Object.keys(transitions).length === 0) {
+                // Nota senza dati: sceglie a caso dal corpus accumulato
+                if (sessionCorpus.length === 0) return currentNote;
+                return sessionCorpus[Math.floor(Math.random() * sessionCorpus.length)];
+            }
+            // Campionamento stocastico dalla distribuzione appresa
+            const total = Object.values(transitions).reduce((a, b) => a + b, 0);
+            let rand = Math.random() * total;
+            for (const [note, count] of Object.entries(transitions)) {
+                rand -= count;
+                if (rand <= 0) return note;
+            }
+            return Object.keys(transitions)[0];
+        }
+
+        function generateMarkovSequence(length, startNote) {
+            const result = [];
+            let current = startNote;
+            for (let i = 0; i < length; i++) {
+                result.push(current);
+                current = getNextNote(current);
+            }
+            return result;
+        }
+
+        function getTopTransition(note) {
+            // Restituisce { note, probability } per la visualizzazione nel HUD
+            const transitions = markovModel[note];
+            if (!transitions) return { note: '?', probability: 0 };
+            const total = Object.values(transitions).reduce((a, b) => a + b, 0);
+            let topNote = null, topCount = 0;
+            for (const [n, c] of Object.entries(transitions)) {
+                if (c > topCount) { topCount = c; topNote = n; }
+            }
+            return { note: topNote || '?', probability: total > 0 ? topCount / total : 0 };
+        }
         const statusText = document.getElementById('smir-text');
         const statusInd = document.getElementById('smir-indicator');
         const statusBox = document.getElementById('smir-status');
@@ -736,6 +900,30 @@
             }
         }
 
+        function updateHud(note, probability, mode = 'predict') {
+            const hud = document.getElementById('ai-hud');
+            const content = document.getElementById('hud-content');
+            hud.classList.remove('hidden');
+            setTimeout(() => {
+                hud.classList.add('opacity-100', 'translate-y-0');
+                hud.classList.remove('opacity-0', 'translate-y-4');
+            }, 50);
+            
+            const label = mode === 'predict' ? 'PREDICTING NEXT' : 'NEURAL OUTPUT';
+            const color = mode === 'predict' ? 'text-primary-glow' : 'text-secondary-glow';
+            const barColor = mode === 'predict' ? 'bg-primary-glow' : 'bg-secondary-glow';
+
+            content.innerHTML = `
+                <div class="flex justify-between text-[10px] font-mono ${color}">
+                    <span>${label}: ${note}</span>
+                    <span>${Math.round(probability * 100)}%</span>
+                </div>
+                <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                    <div class="${barColor} h-full transition-all duration-500" style="width: ${probability * 100}%"></div>
+                </div>
+            `;
+        }
+
         function playKey(note, isAi = false) {
             if(!audioCtxRef.current) return;
             if(!isAi && isAiPlaying) interruptAi();
@@ -744,45 +932,66 @@
             const keyData = pianoKeys.find(k => k.note === note);
             if(!keyData) return;
             
+            // Trigger background pulse (NEW 2026)
+            const keyRect = keyElements[note].getBoundingClientRect();
+            createSynapticPulse(keyRect.left + keyRect.width/2, keyRect.top + keyRect.height/2, isAi ? 'rgba(112, 0, 255, 0.8)' : 'rgba(0, 240, 255, 0.8)');
+
             playTone(keyData.freq);
             const el = keyElements[note];
             const activeClass = isAi ? 'active-ai' : 'active-user';
             el.classList.add(activeClass);
             setTimeout(() => el.classList.remove(activeClass), 200);
 
-            if (!isAi) {
+            if (isAi) {
+                updateHud(note, 0.8 + Math.random() * 0.2, 'output');
+            } else {
                 userSequence.push({ note, time: Date.now() });
+
+                // Mostra la previsione Markov reale nel HUD (se il modello ha dati)
+                const pred = getTopTransition(note);
+                if (pred.probability > 0) {
+                    updateHud(pred.note, pred.probability, 'predict');
+                } else {
+                    updateHud('...', 0.5 + Math.random() * 0.4, 'predict');
+                }
+
+                // Soglia di silenzio: ~250ms (valore originale del Continuator di Pachet)
                 clearTimeout(turnTimeout);
-                turnTimeout = setTimeout(triggerMirror, 1000); // 1 sec silence = end of turn
+                turnTimeout = setTimeout(triggerMirror, 250);
             }
         }
 
         function triggerMirror() {
             if (userSequence.length === 0) return;
+
+            // === APPRENDIMENTO: aggiorna il modello Markov con la frase appena suonata ===
+            learnFromSequence(userSequence);
+
             setStatus('ai');
             isAiPlaying = true;
-            
+
             const firstTime = userSequence[0].time;
-            const latency = 400; // Latenza Strategica
-            
-            // --- Algoritmo di Variazione MIROR ---
-            // Il sistema apprende il "vocabolario" (le note suonate) e il ritmo.
-            // A volte ripete, a volte varia per mantenere viva l'interazione.
+            const latency = 400; // Latenza Strategica (ms)
+            const modelSize = Object.keys(markovModel).length;
+
             let responseNotes = [];
             const r = Math.random();
-            
-            if (r < 0.4 || userSequence.length <= 1) {
-                // 40% delle volte: Ripetizione Esatta (Mirror puro)
+
+            // === GENERAZIONE: fedele al paradigma Continuator/MIROR ===
+            // Nelle prime frasi (modello scarso) o 35% delle volte: Ripetizione Esatta
+            // — crea l'effetto specchio iniziale, stabilisce il contatto (Scaffolding)
+            if (modelSize < 3 || r < 0.35) {
+                // Ripetizione Esatta — Mirror puro
                 responseNotes = userSequence.map(e => e.note);
-            } else if (r < 0.7) {
-                // 30% delle volte: Retrogrado (Inversione dell'ordine delle note, ma stesso ritmo)
-                responseNotes = userSequence.map(e => e.note).reverse();
             } else {
-                // 30% delle volte: Variazione Stilistica (Usa solo le note appena suonate dall'utente, riordinate casualmente)
-                const vocabulary = userSequence.map(e => e.note);
-                responseNotes = userSequence.map(() => vocabulary[Math.floor(Math.random() * vocabulary.length)]);
+                // Variazione Stilistica via Markov — il sistema naviga il proprio modello
+                // Parte da una nota a caso della frase utente e genera una continuazione
+                // statistica che rispetta la grammatica appresa nella sessione.
+                const startNote = userSequence[Math.floor(Math.random() * userSequence.length)].note;
+                responseNotes = generateMarkovSequence(userSequence.length, startNote);
             }
-            
+
+            // Pianifica la riproduzione rispettando il ritmo originale dell'utente
             userSequence.forEach((evt, i) => {
                 const delay = (evt.time - firstTime) + latency;
                 const noteToPlay = responseNotes[i];
@@ -792,7 +1001,7 @@
                 aiTimeouts.push(t);
             });
 
-            const lastDelay = (userSequence[userSequence.length-1].time - firstTime) + latency + 300;
+            const lastDelay = (userSequence[userSequence.length - 1].time - firstTime) + latency + 300;
             aiTimeouts.push(setTimeout(() => {
                 if (isAiPlaying) {
                     isAiPlaying = false;
