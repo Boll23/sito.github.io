@@ -99,8 +99,6 @@
             box-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 rgba(0,0,0,0.2);
             transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
             position: relative; overflow: hidden;
-            /* Frosted glass SVG filter */
-            filter: url(#frosted-glass);
         }
         .glass-card::before {
             content: '';
@@ -145,8 +143,8 @@
 
         /* ── 3D TILT ── */
         .perspective-container { perspective: 2000px; }
-        .tilt-card { transform-style: preserve-3d; will-change: transform; }
-        .tilt-card-content { transform: translateZ(30px); }
+        .tilt-card { transform-style: preserve-3d; will-change: transform; backface-visibility: hidden; }
+        .tilt-card-content { transform: translateZ(30px); backface-visibility: hidden; }
 
         /* ── GRADIENT TEXT ── */
         .gradient-text {
@@ -200,7 +198,7 @@
             padding: 2rem; display: flex; flex-direction: column;
             justify-content: space-between; height: 100%;
             position: relative; overflow: hidden;
-            transform-style: preserve-3d; will-change: transform;
+            transform-style: preserve-3d; will-change: transform; backface-visibility: hidden;
             transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .bento-item:hover { transform: translateY(-7px); }
@@ -306,20 +304,13 @@
         .hero-letter {
             display: inline-block;
             transition: transform 0.05s ease-out, text-shadow 0.1s ease;
+            backface-visibility: hidden;
         }
     </style>
 </head>
-<body class="antialiased font-sans">
+<body class="subpixel-antialiased font-sans">
 
-<!-- Hidden SVG filter for frosted glass -->
-<svg style="display:none">
-  <defs>
-    <filter id="frosted-glass">
-      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </defs>
-</svg>
+
 
 <div id="scroll-progress"></div>
 <div class="dot-grid-bg"></div>
