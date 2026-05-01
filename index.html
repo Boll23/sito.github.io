@@ -1,63 +1,43 @@
 <!DOCTYPE html>
-<html lang="it" class="scroll-smooth">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIROR: Musical Interaction Relying On Reflexion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'deep-space': '#05050A',
-                        'primary-glow': '#00f0ff',
-                        'secondary-glow': '#7000ff',
-                        'accent-glow': '#ff003c',
-                    },
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
-                        mono: ['Space Mono', 'monospace'],
-                    },
-                    animation: {
-                        'blob': 'blob 10s infinite',
-                        'float': 'float 3s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(40px, -60px) scale(1.1)' },
-                            '66%': { transform: 'translate(-30px, 30px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
-                        },
-                        float: {
-                            '0%,100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-8px)' },
-                        },
-                    }
-                }
-            }
-        }
-    </script>
     <style>
+        /* ── RESET & BASE ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.025);
-            --glass-border: rgba(255, 255, 255, 0.07);
-            --glass-highlight: rgba(255, 255, 255, 0.12);
             --cyan: #00f0ff;
             --purple: #7000ff;
+            --red: #ff003c;
+            --glass-bg: rgba(255,255,255,0.025);
+            --glass-border: rgba(255,255,255,0.07);
+            --glass-highlight: rgba(255,255,255,0.12);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --text-dimmer: #475569;
+            --bg: #05050A;
         }
 
-        body { background-color: #05050A; color: #e2e8f0; overflow-x: hidden; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
 
         /* ── SCROLL PROGRESS ── */
         #scroll-progress {
             position: fixed; top: 0; left: 0;
             height: 2px; width: 0%;
-            background: linear-gradient(90deg, #00f0ff, #7000ff, #ff003c);
+            background: linear-gradient(90deg, var(--cyan), var(--purple), var(--red));
             z-index: 10000;
             box-shadow: 0 0 10px rgba(0,240,255,0.8);
             transition: width 0.1s linear;
@@ -71,22 +51,50 @@
             pointer-events: none; z-index: 0;
         }
 
-        /* ── THREE.JS CANVAS BACKGROUND ── */
+        /* ── THREE.JS CANVAS ── */
         #three-canvas {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.9;
+            pointer-events: none; z-index: 0; opacity: 0.9;
         }
 
-        /* ── 2D NEURON CANVAS (overlay on top of Three.js) ── */
-        .neuron-canvas {
+        /* ── NEURON CANVAS ── */
+        #neuronCanvas {
             position: fixed; inset: 0;
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0.6;
+            pointer-events: none; z-index: 1; opacity: 0.6;
+        }
+
+        /* ── BLOOM CANVAS ── */
+        #bloom-canvas {
+            position: fixed; inset: 0;
+            pointer-events: none; z-index: 3;
+        }
+
+        /* ── AMBIENT ORBS ── */
+        .orbs {
+            position: fixed; inset: 0;
+            overflow: hidden; pointer-events: none; z-index: 0;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            mix-blend-mode: screen;
+            filter: blur(120px);
+            animation: blob 10s infinite;
+        }
+        .orb-1 { width: 500px; height: 500px; top: -10%; left: -10%; background: rgba(0,240,255,0.20); }
+        .orb-2 { width: 500px; height: 500px; top: 20%; right: -10%; background: rgba(112,0,255,0.20); animation-delay: 2s; }
+        .orb-3 { width: 600px; height: 600px; bottom: -20%; left: 20%; background: rgba(255,0,60,0.10); filter: blur(150px); animation-delay: 4s; }
+
+        @keyframes blob {
+            0%   { transform: translate(0,0) scale(1); }
+            33%  { transform: translate(40px,-60px) scale(1.1); }
+            66%  { transform: translate(-30px,30px) scale(0.9); }
+            100% { transform: translate(0,0) scale(1); }
+        }
+        @keyframes pulse-dot {
+            0%,100% { opacity: 1; }
+            50%      { opacity: 0.3; }
         }
 
         /* ── GLASSMORPHISM ── */
@@ -96,8 +104,10 @@
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 rgba(0,0,0,0.2);
-            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.45),
+                        inset 0 1px 0 var(--glass-highlight),
+                        inset 0 -1px 0 rgba(0,0,0,0.2);
+            transition: all 0.5s cubic-bezier(0.2,0.8,0.2,1);
             position: relative; overflow: hidden;
         }
         .glass-card::before {
@@ -111,103 +121,43 @@
         .glass-card:hover {
             transform: translateY(-7px);
             border-color: rgba(0,240,255,0.18);
-            box-shadow: 0 24px 50px rgba(0,0,0,0.6), 0 0 40px rgba(0,240,255,0.07), inset 0 1px 0 rgba(255,255,255,0.2);
+            box-shadow: 0 24px 50px rgba(0,0,0,0.6),
+                        0 0 40px rgba(0,240,255,0.07),
+                        inset 0 1px 0 rgba(255,255,255,0.2);
             background: rgba(255,255,255,0.045);
         }
 
-        /* ── GLINT OVERLAY ── */
         .glint-overlay {
             position: absolute; inset: 0;
-            background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.12) 0%, transparent 60%);
-            pointer-events: none; opacity: 0; transition: opacity 0.3s ease;
+            background: radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,255,255,0.12) 0%, transparent 60%);
+            pointer-events: none; opacity: 0; transition: opacity 0.3s;
         }
         .glass-card:hover .glint-overlay { opacity: 1; }
 
-        /* ── GRADIENT BORDER CARD ── */
-        .glass-card-glow {
-            position: relative; border-radius: 24px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .glass-card-glow::before {
-            content: ''; position: absolute; inset: 0;
-            border-radius: 24px; padding: 1px;
-            background: linear-gradient(135deg, rgba(0,240,255,0.35), rgba(112,0,255,0.35), rgba(0,240,255,0.1));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude;
-            pointer-events: none;
-        }
-        .glass-card-glow:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(0,0,0,0.6), 0 0 50px rgba(0,240,255,0.1); }
-
-        /* ── 3D TILT ── */
-        .perspective-container { perspective: 2000px; }
-        .tilt-card { transform-style: preserve-3d; will-change: transform; backface-visibility: hidden; }
-        .tilt-card-content { transform: translateZ(30px); backface-visibility: hidden; }
-
         /* ── GRADIENT TEXT ── */
         .gradient-text {
-            background: linear-gradient(135deg, #00f0ff 0%, #7000ff 100%);
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
 
-        /* ── HIGHLIGHT BOX ── */
-        .highlight-box {
-            padding: 2rem; border-left: 4px solid var(--cyan);
-            background: rgba(0,240,255,0.05); border-radius: 0 1.5rem 1.5rem 0;
-            margin-bottom: 2rem; position: relative; overflow: hidden;
-        }
-        .highlight-box::after {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(90deg, rgba(0,240,255,0.05) 0%, transparent 100%);
-            pointer-events: none;
-        }
-
         /* ── REVEAL ── */
-        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.2,0.8,0.2,1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-4000 { animation-delay: 4s; }
 
         /* ── SECTION TAG ── */
         .section-tag {
+            display: inline-flex; align-items: center; gap: 8px;
             padding: 6px 16px; border-radius: 9999px;
             font-size: 10px; font-weight: 700;
             text-transform: uppercase; letter-spacing: 0.2em;
-            margin-bottom: 24px; display: inline-flex;
-            align-items: center; gap: 8px; border: 1px solid;
+            margin-bottom: 24px; border: 1px solid;
         }
-
-        /* ── BENTO GRID ── */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(2, 220px);
-            gap: 20px;
-        }
-        @media (max-width: 768px) {
-            .bento-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
-        }
-        .bento-item {
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 var(--glass-highlight);
-            padding: 2rem; display: flex; flex-direction: column;
-            justify-content: space-between; height: 100%;
-            position: relative; overflow: hidden;
-            transform-style: preserve-3d; will-change: transform; backface-visibility: hidden;
-            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .bento-item:hover { transform: translateY(-7px); }
-
-        /* ── NOISE OVERLAY ── */
-        .noise-overlay {
-            position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.03; pointer-events: none; mix-blend-mode: overlay;
+        .tag-cyan  { background: rgba(0,240,255,0.1);  color: var(--cyan);   border-color: rgba(0,240,255,0.2); }
+        .tag-green { background: rgba(74,222,128,0.1); color: #4ade80;       border-color: rgba(74,222,128,0.2); }
+        .tag-purple{ background: rgba(112,0,255,0.1);  color: var(--purple); border-color: rgba(112,0,255,0.2); }
+        .pulse-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--cyan); animation: pulse-dot 1.5s infinite;
         }
 
         /* ── MAGNETIC CURSOR ── */
@@ -215,28 +165,288 @@
             width: 20px; height: 20px; background: white; border-radius: 50%;
             position: fixed; pointer-events: none; z-index: 9999;
             mix-blend-mode: difference;
-            transition: transform 0.15s ease-out, width 0.3s ease, height 0.3s ease;
+            transition: transform 0.15s ease-out, width 0.3s, height 0.3s;
             display: none;
         }
         @media (pointer: fine) { .magnetic-cursor { display: block; } }
 
+        /* ── NAVBAR ── */
+        #navbar {
+            position: fixed; top: 0; width: 100%; z-index: 50;
+            padding: 24px; transition: all 0.3s;
+        }
+        #navbar.scrolled {
+            padding-top: 12px; padding-bottom: 12px;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(16px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .nav-inner {
+            max-width: 1152px; margin: 0 auto;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 16px 32px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .nav-logo {
+            font-weight: 700; letter-spacing: 0.1em;
+            font-size: 14px; text-transform: uppercase;
+            background: linear-gradient(90deg, #fff, rgba(255,255,255,0.5));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a {
+            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.3s;
+        }
+        .nav-links a:hover { color: var(--cyan); }
+        @media (max-width: 768px) { .nav-links { display: none; } }
+
+        /* ── MAIN ── */
+        main {
+            position: relative; z-index: 10;
+            padding: 112px 24px 64px;
+            max-width: 1152px; margin: 0 auto;
+        }
+        @media (min-width: 768px) { main { padding-top: 160px; padding-bottom: 96px; } }
+
+        /* ── HERO ── */
+        .hero { margin-bottom: 96px; }
+        @media (min-width: 768px) { .hero { margin-bottom: 160px; } }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(56px, 10vw, 96px);
+            font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+            margin-bottom: 16px;
+            transform-style: preserve-3d;
+        }
+        .hero-letter {
+            display: inline-block;
+            transition: transform 0.05s ease-out, text-shadow 0.1s ease;
+        }
+        .hero h2 {
+            font-size: clamp(16px, 2.5vw, 28px);
+            font-weight: 300; letter-spacing: 0.15em;
+            color: #cbd5e1; margin-bottom: 32px;
+            text-transform: uppercase;
+        }
+        @media (min-width: 768px) { .hero h2 { margin-bottom: 48px; } }
+        .hero-divider {
+            height: 4px; width: 128px;
+            background: linear-gradient(90deg, var(--cyan), var(--purple));
+            border-radius: 9999px;
+            box-shadow: 0 0 15px rgba(0,240,255,0.5);
+            margin-bottom: 40px;
+        }
+        .hero-desc {
+            font-size: clamp(16px, 2vw, 22px);
+            color: #94a3b8; max-width: 768px;
+            line-height: 1.7; font-weight: 300; margin-bottom: 48px;
+        }
+        .hero-btn {
+            display: inline-flex; align-items: center; gap: 12px;
+            padding: 16px 32px; border-radius: 9999px;
+            background: rgba(0,240,255,0.1);
+            border: 1px solid rgba(0,240,255,0.3);
+            color: var(--cyan); font-weight: 700; text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0,240,255,0.2);
+            position: relative; overflow: hidden;
+        }
+        .hero-btn::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%); transition: transform 0.7s;
+        }
+        .hero-btn:hover::after { transform: translateX(100%); }
+        .hero-btn:hover {
+            background: rgba(0,240,255,0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0,240,255,0.4);
+        }
+        .hero-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+        /* ── SECTIONS ── */
+        section { margin-bottom: 96px; padding-top: 48px; }
+        @media (min-width: 768px) { section { margin-bottom: 160px; padding-top: 80px; } }
+
+        section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(28px, 4vw, 46px);
+            font-weight: 700; margin-bottom: 40px;
+        }
+
+        /* ── HIGHLIGHT BOX ── */
+        .highlight-box {
+            padding: 32px; border-left: 4px solid var(--cyan);
+            background: rgba(0,240,255,0.05);
+            border-radius: 0 24px 24px 0; margin-bottom: 32px;
+        }
+        .highlight-box p { font-size: 20px; color: #e2e8f0; line-height: 1.7; font-weight: 300; }
+
+        /* ── NEUROSCIENCE CARDS ── */
+        .neuro-grid { display: grid; gap: 24px; margin-top: 40px; }
+        @media (min-width: 768px) { .neuro-grid { grid-template-columns: 1fr 1fr; } }
+
+        .neuro-card { padding: 40px; border-left: 2px solid #4ade80; }
+        .neuro-card .card-icon {
+            width: 48px; height: 48px; border-radius: 16px;
+            background: rgba(74,222,128,0.1);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+        }
+        .neuro-card .card-icon svg { width: 24px; height: 24px; color: #4ade80; stroke: #4ade80; fill: none; }
+        .neuro-card h3 {
+            color: #4ade80; font-weight: 700; margin-bottom: 16px;
+            text-transform: uppercase; font-size: 11px; letter-spacing: 0.15em;
+        }
+        .neuro-card p { color: var(--text-muted); line-height: 1.7; }
+
+        /* ── BENTO GRID ── */
+        .bento-section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(28px, 4vw, 46px); font-weight: 700;
+            text-align: center; margin-bottom: 16px;
+        }
+        .bento-section-center { text-align: center; margin-bottom: 48px; }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 220px);
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .bento-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+            .bento-col-2 { grid-column: span 2; }
+        }
+        @media (max-width: 600px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .bento-col-2 { grid-column: span 1; }
+        }
+        .bento-item {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.2,0.8,0.2,1);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 var(--glass-highlight);
+        }
+        .bento-item:hover { transform: translateY(-7px); }
+        .bento-col-2 { grid-column: span 2; grid-row: span 2; }
+        .bento-cyan  { border-color: rgba(0,240,255,0.2); }
+        .bento-cyan:hover  { border-color: rgba(0,240,255,0.4); }
+        .bento-purple{ border-color: rgba(112,0,255,0.2); }
+        .bento-purple:hover{ border-color: rgba(112,0,255,0.4); }
+        .bento-orange{ border-color: rgba(251,146,60,0.2); }
+        .bento-orange:hover{ border-color: rgba(251,146,60,0.4); }
+        .bento-red   { border-color: rgba(255,0,60,0.2); }
+        .bento-red:hover   { border-color: rgba(255,0,60,0.4); }
+
+        .bento-icon {
+            font-size: 40px; margin-bottom: 32px;
+            display: flex; align-items: center; justify-content: center;
+            width: 64px; height: 64px; border-radius: 16px;
+            transition: transform 0.5s;
+        }
+        .bento-item:hover .bento-icon { transform: scale(1.1); }
+        .icon-cyan   { background: rgba(0,240,255,0.1); box-shadow: 0 0 30px rgba(0,240,255,0.2); }
+        .icon-purple { background: rgba(112,0,255,0.1); }
+        .icon-orange { background: rgba(251,146,60,0.1); }
+        .icon-red    { background: rgba(255,0,60,0.1); }
+
+        .bento-item h4 {
+            font-weight: 700; font-size: clamp(18px, 2vw, 24px); color: white; margin-bottom: 12px;
+        }
+        .bento-item p  { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+        .bento-tags    { display: flex; gap: 8px; flex-wrap: wrap; }
+        .bento-tag {
+            padding: 4px 12px; border-radius: 9999px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+            background: rgba(0,240,255,0.1); border: 1px solid rgba(0,240,255,0.2); color: var(--cyan);
+        }
+        .noise-overlay {
+            position: absolute; inset: 0; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.03; mix-blend-mode: overlay;
+        }
+
+        /* ── DEMO SECTION ── */
+        #demo .demo-card {
+            padding: 48px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative; overflow: hidden;
+        }
+        #demo .demo-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(0,240,255,0.05), transparent);
+            pointer-events: none;
+        }
+        #demo h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(28px, 4vw, 46px); color: white; margin-bottom: 16px;
+        }
+        #demo .demo-desc {
+            color: var(--text-muted); max-width: 640px; margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+        #demo .demo-desc strong { color: white; }
+
+        /* ── SMIR STATUS ── */
+        #smir-status {
+            display: inline-flex; align-items: center; gap: 12px;
+            padding: 12px 24px; border-radius: 9999px;
+            font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+            margin-bottom: 48px; transition: all 0.3s;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;
+        }
+        #smir-status.mode-user {
+            background: rgba(0,240,255,0.2); border-color: rgba(0,240,255,0.5); color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0,240,255,0.2);
+        }
+        #smir-status.mode-ai {
+            background: rgba(112,0,255,0.2); border-color: rgba(112,0,255,0.5); color: var(--purple);
+            box-shadow: 0 0 15px rgba(112,0,255,0.2);
+        }
+        #smir-indicator {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #64748b; animation: pulse-dot 1.5s infinite;
+        }
+        #smir-status.mode-user #smir-indicator { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+        #smir-status.mode-ai  #smir-indicator { background: var(--purple); box-shadow: 0 0 10px var(--purple); }
+
         /* ── PIANO ── */
         .piano-wrapper {
+            display: inline-block;
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 24px; padding: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-            display: inline-block; backdrop-filter: blur(20px);
-            position: relative; transform-style: preserve-3d;
-            /* Enhanced: reacts to mouse via JS instead of fixed rotateX */
+            backdrop-filter: blur(20px);
+            position: relative;
             transform: perspective(2000px) rotateX(4deg);
             transition: transform 0.1s ease-out;
         }
+        .piano-wrapper::before {
+            content: '';
+            position: absolute; inset: -4px;
+            background: linear-gradient(90deg, rgba(0,240,255,0.2), rgba(112,0,255,0.2), rgba(0,240,255,0.2));
+            border-radius: 28px; filter: blur(8px); opacity: 0.5; z-index: -1;
+        }
         .piano-container {
-            position: relative; height: 220px; display: flex;
-            justify-content: center; user-select: none; touch-action: none;
+            position: relative; height: 220px;
+            display: flex; justify-content: center;
+            user-select: none; touch-action: none;
             perspective: 1200px; transform-style: preserve-3d;
         }
+        .key-wrapper { position: relative; }
         .white-key {
             width: 50px; height: 100%;
             background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
@@ -244,10 +454,10 @@
             border-radius: 0 0 12px 12px;
             box-shadow: inset 0 -4px 10px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.3);
             z-index: 1; position: relative; cursor: pointer;
-            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.1s cubic-bezier(0.4,0,0.2,1);
             display: flex; align-items: flex-end; justify-content: center;
-            padding-bottom: 15px; color: rgba(0,0,0,0.3); font-weight: bold; font-size: 12px;
-            transform-origin: top;
+            padding-bottom: 15px; color: rgba(0,0,0,0.3);
+            font-weight: 700; font-size: 12px; transform-origin: top;
         }
         .white-key:hover {
             background: linear-gradient(to bottom, rgba(240,240,255,0.98), rgba(220,220,255,0.9));
@@ -259,238 +469,377 @@
             border-radius: 0 0 6px 6px;
             box-shadow: 2px 4px 10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
             position: absolute; top: 0; z-index: 2; cursor: pointer;
-            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.1s cubic-bezier(0.4,0,0.2,1);
             display: flex; align-items: flex-end; justify-content: center;
-            padding-bottom: 10px; color: rgba(255,255,255,0.3); font-size: 10px; font-weight: bold;
-            transform-origin: top;
+            padding-bottom: 10px; color: rgba(255,255,255,0.3);
+            font-size: 10px; font-weight: 700; transform-origin: top;
         }
         .black-key:hover {
             background: linear-gradient(to bottom, #2a2a4e, #1a1a3e);
-            box-shadow: 2px 4px 10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(0,240,255,0.2), 0 0 10px rgba(0,240,255,0.1);
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(0,240,255,0.2);
         }
-        .key-wrapper { position: relative; }
+        .white-key.active-user { background: #e0fdff; color: var(--cyan); transform: rotateX(3deg); z-index: 3; border-bottom-width: 1px; box-shadow: inset 0 -4px 20px var(--cyan), 0 0 30px rgba(0,240,255,0.6), 0 0 60px rgba(0,240,255,0.3); }
+        .black-key.active-user { background: linear-gradient(to bottom,#005566,#002233); color: var(--cyan); transform: rotateX(3deg); border-bottom-width: 1px; box-shadow: inset 0 2px 5px var(--cyan), 0 0 20px rgba(0,240,255,0.5); }
+        .white-key.active-ai   { background: #f0e0ff; color: var(--purple); transform: rotateX(3deg); z-index: 3; border-bottom-width: 1px; box-shadow: inset 0 -4px 20px var(--purple), 0 0 30px rgba(112,0,255,0.6), 0 0 60px rgba(112,0,255,0.3); }
+        .black-key.active-ai   { background: linear-gradient(to bottom,#330066,#110022); color: var(--purple); transform: rotateX(3deg); border-bottom-width: 1px; box-shadow: inset 0 2px 5px var(--purple), 0 0 20px rgba(112,0,255,0.5); }
 
-        /* Active states with enhanced bloom */
-        .white-key.active-user {
-            background: #e0fdff;
-            box-shadow: inset 0 -4px 20px #00f0ff, 0 0 30px rgba(0,240,255,0.6), 0 0 60px rgba(0,240,255,0.3);
-            z-index: 3; border-bottom-width: 1px;
-            transform: rotateX(3deg); color: #00f0ff;
+        /* ── ACTIVATE BUTTON ── */
+        .activate-btn {
+            padding: 13px 36px; border-radius: 9999px;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            color: white; border: none; cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 20px rgba(0,240,255,0.4);
+            margin-bottom: 24px;
         }
-        .black-key.active-user {
-            background: linear-gradient(to bottom, #005566, #002233);
-            box-shadow: inset 0 2px 5px #00f0ff, 0 0 20px rgba(0,240,255,0.5), 0 0 40px rgba(0,240,255,0.2);
-            border-bottom-width: 1px; transform: rotateX(3deg); color: #00f0ff;
+        .activate-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0,240,255,0.6); }
+
+        /* ── AI HUD ── */
+        .ai-hud {
+            display: none;
+            background: var(--glass-bg); backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border); border-radius: 24px;
+            padding: 16px; min-width: 200px;
+            opacity: 0; transform: translateY(16px);
+            transition: all 0.7s;
         }
-        .white-key.active-ai {
-            background: #f0e0ff;
-            box-shadow: inset 0 -4px 20px #7000ff, 0 0 30px rgba(112,0,255,0.6), 0 0 60px rgba(112,0,255,0.3);
-            z-index: 3; border-bottom-width: 1px;
-            transform: rotateX(3deg); color: #7000ff;
+        .ai-hud.visible { opacity: 1; transform: translateY(0); }
+        .hud-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 12px;
         }
-        .black-key.active-ai {
-            background: linear-gradient(to bottom, #330066, #110022);
-            box-shadow: inset 0 2px 5px #7000ff, 0 0 20px rgba(112,0,255,0.5), 0 0 40px rgba(112,0,255,0.2);
-            border-bottom-width: 1px; transform: rotateX(3deg); color: #7000ff;
+        .hud-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); font-weight: 700; }
+        .hud-dot   { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); animation: pulse-dot 1.5s infinite; }
+
+        /* ── DEMO BOTTOM ROW ── */
+        .demo-bottom {
+            margin-top: 48px;
+            display: flex; flex-direction: column; align-items: center; gap: 24px;
+        }
+        @media (min-width: 768px) { .demo-bottom { flex-direction: row; justify-content: center; } }
+
+        /* ── SMIR SECTION ── */
+        .smir-card { padding: 48px 64px; }
+        @media (max-width: 768px) { .smir-card { padding: 32px 24px; } }
+        .smir-inner {
+            display: grid; gap: 40px;
+        }
+        @media (min-width: 1024px) { .smir-inner { grid-template-columns: 1fr 1fr; gap: 64px; } }
+        .smir-steps { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
+        .smir-step {
+            display: flex; gap: 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 24px;
+            transition: background 0.3s;
+        }
+        .smir-step:hover { background: rgba(255,255,255,0.05); }
+        .step-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 40px; font-weight: 700;
+            color: rgba(112,0,255,0.35); line-height: 1; flex-shrink: 0;
+        }
+        .smir-step h5 { font-size: 15px; font-weight: 700; color: #c4b5fd; margin-bottom: 8px; }
+        .smir-step p  { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+        .smir-quote {
+            padding: 32px 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            background: rgba(255,255,255,0.02);
+            display: flex; flex-direction: column; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        .smir-quote::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            opacity: 0; transition: opacity 0.5s;
+        }
+        .smir-quote:hover::before { opacity: 1; }
+        .smir-quote h4 {
+            font-size: 11px; font-weight: 700; color: var(--red);
+            text-transform: uppercase; letter-spacing: 0.2em;
+            text-align: center; margin-bottom: 24px;
+        }
+        .smir-quote p {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px; font-style: italic; color: #e2e8f0;
+            line-height: 1.7; text-align: center;
         }
 
-        /* ── BLOOM CANVAS OVERLAY ── */
-        #bloom-canvas {
-            position: fixed; inset: 0;
-            pointer-events: none; z-index: 3;
+        /* ── ALGORITMO ── */
+        .algo-grid {
+            display: grid; gap: 40px;
         }
+        @media (min-width: 1024px) { .algo-grid { grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; } }
+        .algo-card { padding: 48px; border-top: 2px solid var(--cyan); }
+        .algo-card h3 { font-size: 28px; font-weight: 700; color: white; margin-bottom: 32px; }
+        .algo-items { display: flex; flex-direction: column; gap: 24px; }
+        .algo-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 24px;
+            transition: border-color 0.3s; position: relative; overflow: hidden;
+        }
+        .algo-item:hover { border-color: rgba(0,240,255,0.5); }
+        .algo-item-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+        .algo-item-label {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: var(--cyan);
+        }
+        .algo-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px; font-weight: 700; color: white;
+            background: rgba(0,240,255,0.2); padding: 4px 12px;
+            border-radius: 9999px; box-shadow: 0 0 15px rgba(0,240,255,0.3);
+        }
+        .algo-body { font-size: 14px; color: #cbd5e1; line-height: 1.8; }
+        .algo-bullet {
+            display: flex; gap: 12px; align-items: flex-start; margin-top: 16px;
+        }
+        .algo-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--cyan); flex-shrink: 0; margin-top: 6px;
+            box-shadow: 0 0 5px var(--cyan);
+        }
+        .algo-bullet p { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+        .algo-example {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(0,240,255,0.2);
+            border-radius: 12px; padding: 20px 24px; margin: 16px 0 0 24px;
+        }
+        .algo-example-label { font-size: 11px; font-weight: 700; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px; }
+        .algo-example p { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+        .stat-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 20px 24px; transition: border-color 0.3s;
+        }
+        .stat-row:hover { border-color: rgba(112,0,255,0.3); }
+        .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-dim); margin-bottom: 4px; }
+        .stat-sub   { font-size: 14px; color: var(--text-muted); }
+        .stat-val   { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--cyan); }
+        .stat-val.purple { color: var(--purple); }
+        .stat-turn {
+            background: rgba(255,0,60,0.05); border: 1px solid rgba(255,0,60,0.2);
+            border-radius: 16px; padding: 20px 24px;
+        }
+        .stat-turn-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        .stat-turn-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--red); }
+        .stat-turn-badge {
+            font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: white;
+            background: rgba(255,0,60,0.2); padding: 4px 12px; border-radius: 9999px;
+        }
+        .stat-turn p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
 
-        /* ── HERO DEPTH OF FIELD LETTERS ── */
-        .hero-letter {
-            display: inline-block;
-            transition: transform 0.05s ease-out, text-shadow 0.1s ease;
-            backface-visibility: hidden;
+        /* ── FLOW COLUMN ── */
+        .flow-col { padding: 8px 32px; }
+        @media (max-width: 1024px) { .flow-col { padding: 0; } }
+        .flow-col h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px; font-weight: 700; font-style: italic;
+            color: white; margin-bottom: 24px;
+        }
+        .flow-quote-text {
+            font-size: 18px; font-style: italic; color: var(--text-muted);
+            border-left: 2px solid rgba(255,255,255,0.2);
+            padding-left: 24px; margin-bottom: 40px; line-height: 1.7;
+        }
+        .flow-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .flow-card {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 24px; transition: background 0.3s;
+        }
+        .flow-card:hover { background: rgba(255,255,255,0.05); }
+        .flow-card-icon {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 16px;
+        }
+        .flow-card-icon.cyan   { background: rgba(0,240,255,0.1); }
+        .flow-card-icon.purple { background: rgba(112,0,255,0.1); }
+        .flow-card-icon svg    { width: 20px; height: 20px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .flow-card-icon.cyan   svg { stroke: var(--cyan); }
+        .flow-card-icon.purple svg { stroke: var(--purple); }
+        .flow-card h5 { font-size: 13px; font-weight: 700; color: white; text-transform: uppercase; margin-bottom: 8px; }
+        .flow-card p  { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 64px 24px; text-align: center;
+            position: relative; z-index: 10;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(12px);
+        }
+        footer p { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.2em; line-height: 2; }
+        footer span { color: #475569; display: block; margin-top: 8px; }
+
+        /* ── HERO LETTER GRADIENT ── */
+        #hero-title {
+            background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 55%, #fcd34d 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
     </style>
 </head>
-<body class="subpixel-antialiased font-sans">
-
-
+<body>
 
 <div id="scroll-progress"></div>
 <div class="dot-grid-bg"></div>
-
-<!-- THREE.JS SCENE BACKGROUND -->
 <canvas id="three-canvas"></canvas>
-
-<!-- 2D NEURON CANVAS -->
-<canvas id="neuronCanvas" class="neuron-canvas"></canvas>
-
-<!-- BLOOM CANVAS -->
+<canvas id="neuronCanvas"></canvas>
 <canvas id="bloom-canvas"></canvas>
-
 <div id="cursor" class="magnetic-cursor"></div>
 
-<!-- Ambient Glowing Orbs -->
-<div class="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
-    <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary-glow/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob"></div>
-    <div class="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-secondary-glow/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob animation-delay-2000"></div>
-    <div class="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-accent-glow/10 rounded-full mix-blend-screen filter blur-[150px] animate-blob animation-delay-4000"></div>
+<div class="orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
 </div>
 
 <!-- NAVBAR -->
-<nav class="fixed top-0 w-full z-50 px-6 py-6 transition-all duration-300" id="navbar">
-    <div class="max-w-6xl mx-auto glass-card px-8 py-4 flex justify-between items-center bg-black/20">
-        <span class="font-bold tracking-widest text-sm uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-white/50">MIROR Project</span>
-        <div class="hidden md:flex gap-8 text-[10px] font-bold uppercase tracking-widest">
-            <a href="#neuroscience" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Neuroni Specchio</a>
-            <a href="#applicazioni" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Applicazioni</a>
-            <a href="#demo" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Prova MIROR</a>
-            <a href="#ia" class="text-white/60 hover:text-primary-glow transition-colors duration-300">SMIR &amp; Tabula Rasa</a>
-            <a href="#tecnica" class="text-white/60 hover:text-primary-glow transition-colors duration-300">Algoritmo</a>
+<nav id="navbar">
+    <div class="nav-inner">
+        <span class="nav-logo">MIROR Project</span>
+        <div class="nav-links">
+            <a href="#neuroscience">Neuroni Specchio</a>
+            <a href="#applicazioni">Applicazioni</a>
+            <a href="#demo">Prova MIROR</a>
+            <a href="#ia">SMIR &amp; Tabula Rasa</a>
+            <a href="#tecnica">Algoritmo</a>
         </div>
     </div>
 </nav>
 
-<main class="relative z-10 pt-28 md:pt-40 pb-16 md:pb-24 px-4 md:px-6 max-w-6xl mx-auto">
+<main>
 
     <!-- HERO -->
-    <header class="mb-24 md:mb-40 reveal perspective-container">
-        <div class="tilt-card">
-            <span class="section-tag bg-primary-glow/10 text-primary-glow border-primary-glow/20 tilt-card-content">
-                <span class="w-1.5 h-1.5 rounded-full bg-primary-glow animate-pulse"></span>
-                Neurodidattica Musicale
-            </span>
-            <h1 class="font-serif text-6xl md:text-8xl font-bold mb-4 md:mb-6 tracking-tight" id="hero-title" style="transform-style:preserve-3d;">
-                <span class="hero-letter" data-z="60">M</span><span class="hero-letter" data-z="20">I</span><span class="hero-letter" data-z="50">R</span><span class="hero-letter" data-z="15">O</span><span class="hero-letter" data-z="55">R</span>
-            </h1>
-            <h2 class="text-xl md:text-3xl font-light tracking-[0.15em] text-slate-300 mb-8 md:mb-12 uppercase tilt-card-content">
-                Musical Interaction Relying On <span class="gradient-text font-bold">Reflexion</span>
-            </h2>
-            <div class="h-1 w-32 bg-gradient-to-r from-primary-glow to-secondary-glow mb-10 rounded-full shadow-[0_0_15px_rgba(0,240,255,0.5)] tilt-card-content"></div>
-            <p class="text-xl md:text-2xl text-slate-400 max-w-3xl leading-relaxed font-light mb-12 tilt-card-content">
-                Il progetto MIROR trasforma le scoperte neuroscientifiche di Parma in una piattaforma interattiva basata sugli <strong class="text-white font-semibold">SMIR</strong>, dove la macchina riflette l'io creativo del bambino attraverso il paradigma della riflessività.
-            </p>
-        </div>
-        <a href="https://www.youtube.com/watch?v=DDCXTY1Vzi0" target="_blank" rel="noopener noreferrer"
-           class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-primary-glow/10 border border-primary-glow/30 text-primary-glow font-bold hover:bg-primary-glow/20 hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(0,240,255,0.2)] hover:shadow-[0_0_30px_rgba(0,240,255,0.4)] group relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-            <svg class="w-6 h-6 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <header class="hero reveal">
+        <span class="section-tag tag-cyan">
+            <span class="pulse-dot"></span>
+            Neurodidattica Musicale
+        </span>
+        <h1 id="hero-title" style="transform-style:preserve-3d;">
+            <span class="hero-letter" data-z="60">M</span><span class="hero-letter" data-z="20">I</span><span class="hero-letter" data-z="50">R</span><span class="hero-letter" data-z="15">O</span><span class="hero-letter" data-z="55">R</span>
+        </h1>
+        <h2>Musical Interaction Relying On <span class="gradient-text" style="font-weight:700;">Reflexion</span></h2>
+        <div class="hero-divider"></div>
+        <p class="hero-desc">
+            Il progetto MIROR trasforma le scoperte neuroscientifiche di Parma in una piattaforma interattiva basata sugli <strong style="color:white;font-weight:600;">SMIR</strong>, dove la macchina riflette l'io creativo del bambino attraverso il paradigma della riflessività.
+        </p>
+        <a href="https://www.youtube.com/watch?v=DDCXTY1Vzi0" target="_blank" rel="noopener noreferrer" class="hero-btn">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
             Guarda il Video Dimostrativo
         </a>
     </header>
 
     <!-- NEURONI A SPECCHIO -->
-    <section id="neuroscience" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
-        <div class="max-w-4xl">
-            <span class="section-tag bg-green-500/10 text-green-400 border-green-500/20">Fondamento Biologico</span>
-            <h2 class="font-serif text-4xl md:text-5xl font-bold mb-10 italic">I Neuroni a Specchio (G. Rizzolatti)</h2>
-            <div class="highlight-box">
-                <p class="text-xl text-slate-200 leading-relaxed font-light">
-                    Scoperti dal team di <strong class="text-white">Giacomo Rizzolatti</strong>, questi neuroni si attivano non solo quando compiamo un'azione, ma anche quando <strong class="text-primary-glow font-medium">osserviamo o ascoltiamo</strong> un'azione simile compiuta da altri.
-                </p>
+    <section id="neuroscience" class="reveal">
+        <span class="section-tag tag-green">Fondamento Biologico</span>
+        <h2 style="font-style:italic;">I Neuroni a Specchio (G. Rizzolatti)</h2>
+        <div class="highlight-box">
+            <p>Scoperti dal team di <strong style="color:white;">Giacomo Rizzolatti</strong>, questi neuroni si attivano non solo quando compiamo un'azione, ma anche quando <strong style="color:var(--cyan);">osserviamo o ascoltiamo</strong> un'azione simile compiuta da altri.</p>
+        </div>
+        <div class="neuro-grid">
+            <div class="glass-card neuro-card">
+                <div class="glint-overlay"></div>
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <h3>Simulazione Incarnata</h3>
+                <p>Ascoltare la risposta del MIROR attiva nel bambino la sensazione motoria di aver prodotto quel suono. Il cervello "simula" il gesto riflesso, creando un legame profondo tra sé e la macchina.</p>
             </div>
-            <div class="grid md:grid-cols-2 gap-6 md:gap-8 mt-10 md:mt-16">
-                <div class="glass-card p-6 md:p-10 border-l-2 border-l-green-500 hover:border-l-green-400 tilt-card">
-                    <div class="glint-overlay"></div>
-                    <div class="tilt-card-content">
-                        <div class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center mb-6">
-                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        </div>
-                        <h3 class="text-green-400 font-bold mb-4 uppercase text-xs tracking-widest">Simulazione Incarnata</h3>
-                        <p class="text-slate-400 leading-relaxed">Ascoltare la risposta del MIROR attiva nel bambino la sensazione motoria di aver prodotto quel suono. Il cervello "simula" il gesto riflesso, creando un legame profondo tra sé e la macchina.</p>
-                    </div>
+            <div class="glass-card neuro-card">
+                <div class="glint-overlay"></div>
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                 </div>
-                <div class="glass-card p-6 md:p-10 border-l-2 border-l-green-500 hover:border-l-green-400 tilt-card">
-                    <div class="glint-overlay"></div>
-                    <div class="tilt-card-content">
-                        <div class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center mb-6">
-                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        </div>
-                        <h3 class="text-green-400 font-bold mb-4 uppercase text-xs tracking-widest">Common Coding (Prinz)</h3>
-                        <p class="text-slate-400 leading-relaxed">Secondo il sistema di codifica di Prinz, percezione e azione condividono lo stesso codice cerebrale. Il MIROR, riflettendo lo stile del bambino, "parla" lo stesso codice della sua mente.</p>
-                    </div>
-                </div>
+                <h3>Common Coding (Prinz)</h3>
+                <p>Secondo il sistema di codifica di Prinz, percezione e azione condividono lo stesso codice cerebrale. Il MIROR, riflettendo lo stile del bambino, "parla" lo stesso codice della sua mente.</p>
             </div>
         </div>
     </section>
 
-    <!-- APPLICAZIONI BENTO -->
-    <section id="applicazioni" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
-        <div class="text-center mb-12 md:mb-20">
-            <span class="section-tag bg-secondary-glow/10 text-secondary-glow border-secondary-glow/20">La Piattaforma MIROR</span>
-            <h2 class="font-serif text-4xl md:text-5xl font-bold mt-4">Le Dimensioni della Creatività</h2>
+    <!-- APPLICAZIONI -->
+    <section id="applicazioni" class="reveal">
+        <div class="bento-section-center">
+            <span class="section-tag tag-purple">La Piattaforma MIROR</span>
+            <h2 class="bento-section-title">Le Dimensioni della Creatività</h2>
         </div>
         <div class="bento-grid">
-            <div class="bento-item col-span-2 row-span-2 group border-primary-glow/20 hover:border-primary-glow/40">
+            <div class="bento-item bento-col-2 bento-cyan">
                 <div class="noise-overlay"></div>
-                <div class="glint-overlay"></div>
-                <div class="tilt-card-content flex flex-col justify-between h-full">
+                <div class="bento-icon icon-cyan">🎹</div>
+                <div>
+                    <h4>MIROR-Impro</h4>
+                    <p>Il cuore pulsante del sistema. Un dialogo libero sulla tastiera dove la macchina imita e varia l'input del bambino in tempo reale.</p>
+                </div>
+                <div class="bento-tags">
+                    <span class="bento-tag">Real-time Reflexion</span>
+                    <span class="bento-tag">Flow State</span>
+                </div>
+            </div>
+            <div class="bento-item bento-purple" style="grid-column:span 2;">
+                <div class="noise-overlay"></div>
+                <div style="display:flex;gap:32px;align-items:flex-start;">
+                    <div class="bento-icon icon-purple" style="flex-shrink:0;">🎼</div>
                     <div>
-                        <div class="w-16 h-16 rounded-2xl bg-primary-glow/10 flex items-center justify-center mb-8 text-3xl group-hover:scale-110 transition-transform duration-500 shadow-[0_0_30px_rgba(0,240,255,0.2)]">🎹</div>
-                        <h4 class="font-bold text-3xl mb-4 text-white">MIROR-Impro</h4>
-                        <p class="text-slate-400 text-lg leading-relaxed mb-6">Il cuore pulsante del sistema. Un dialogo libero sulla tastiera dove la macchina imita e varia l'input del bambino in tempo reale.</p>
-                    </div>
-                    <div class="flex items-center gap-4 text-primary-glow font-bold text-xs tracking-widest uppercase">
-                        <span class="px-3 py-1 rounded-full bg-primary-glow/10 border border-primary-glow/20">Real-time Reflexion</span>
-                        <span class="px-3 py-1 rounded-full bg-primary-glow/10 border border-primary-glow/20">Flow State</span>
+                        <h4>MIROR-Compo</h4>
+                        <p>Manipolazione di frasi musicali e oggetti sonori. Co-regolazione della struttura complessa.</p>
                     </div>
                 </div>
             </div>
-            <div class="bento-item col-span-2 row-span-1 group border-secondary-glow/20 hover:border-secondary-glow/40">
+            <div class="bento-item bento-orange">
                 <div class="noise-overlay"></div>
-                <div class="glint-overlay"></div>
-                <div class="tilt-card-content flex gap-8 items-start">
-                    <div class="w-14 h-14 rounded-2xl bg-secondary-glow/10 flex items-center justify-center text-2xl shrink-0 group-hover:rotate-12 transition-transform duration-500">🎼</div>
-                    <div>
-                        <h4 class="font-bold text-xl mb-2 text-white">MIROR-Compo</h4>
-                        <p class="text-slate-400 text-sm leading-relaxed">Manipolazione di frasi musicali e oggetti sonori. Co-regolazione della struttura complessa.</p>
-                    </div>
-                </div>
+                <div class="bento-icon icon-orange">🤸</div>
+                <h4>Body Gesture</h4>
+                <p style="font-size:12px;color:var(--text-dim);">Sonorizzazione del gesto corporeo e del movimento spaziale.</p>
             </div>
-            <div class="bento-item col-span-1 row-span-1 group border-orange-500/20 hover:border-orange-500/40">
+            <div class="bento-item bento-red">
                 <div class="noise-overlay"></div>
-                <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 text-xl group-hover:scale-110 transition-transform duration-500">🤸</div>
-                <h4 class="font-bold text-white mb-2">Body Gesture</h4>
-                <p class="text-slate-500 text-xs leading-relaxed">Sonorizzazione del gesto corporeo e del movimento spaziale.</p>
-            </div>
-            <div class="bento-item col-span-1 row-span-1 group border-accent-glow/20 hover:border-accent-glow/40">
-                <div class="noise-overlay"></div>
-                <div class="w-12 h-12 rounded-xl bg-accent-glow/10 flex items-center justify-center mb-4 text-xl group-hover:scale-110 transition-transform duration-500">🧠</div>
-                <h4 class="font-bold text-white mb-2">Multimodal</h4>
-                <p class="text-slate-500 text-xs leading-relaxed">Integrazione di vista, udito e propriocezione musicale.</p>
+                <div class="bento-icon icon-red">🧠</div>
+                <h4>Multimodal</h4>
+                <p style="font-size:12px;color:var(--text-dim);">Integrazione di vista, udito e propriocezione musicale.</p>
             </div>
         </div>
     </section>
 
     <!-- DEMO -->
-    <section id="demo" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
-        <div class="glass-card p-8 md:p-12 border border-white/10 text-center relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-b from-primary-glow/5 to-transparent pointer-events-none"></div>
-            <span class="section-tag bg-primary-glow/10 text-primary-glow border-primary-glow/20">Esperienza Interattiva</span>
-            <h2 class="font-serif text-3xl md:text-5xl font-bold mb-4 text-white">Il Mini-SMIR</h2>
-            <p class="text-slate-400 max-w-2xl mx-auto mb-8">
+    <section id="demo" class="reveal">
+        <div class="glass-card demo-card">
+            <span class="section-tag tag-cyan">Esperienza Interattiva</span>
+            <h2>Il Mini-SMIR</h2>
+            <p class="demo-desc">
                 Suona una breve melodia cliccando sui tasti (o usa le lettere <strong>A S D F G H J K</strong> della tastiera).
                 Fermati e ascolta: il MIROR rifletterà la tua creazione, <strong>a volte ripetendola esattamente, a volte proponendo una variazione</strong> basata sul tuo stile.
             </p>
-            <div id="smir-status" class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-sm font-bold text-slate-300 mb-12 transition-colors duration-300 shadow-inner">
-                <span id="smir-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse shadow-[0_0_10px_currentColor]"></span>
-                <span id="smir-text" class="tracking-wide uppercase text-xs">In attesa... (Premi Attiva)</span>
+            <div id="smir-status">
+                <span id="smir-indicator"></span>
+                <span id="smir-text">In attesa... (Premi Attiva)</span>
             </div>
-            <div class="piano-wrapper" id="piano-wrapper">
-                <div class="absolute -inset-1 bg-gradient-to-r from-primary-glow/20 via-secondary-glow/20 to-primary-glow/20 blur-lg opacity-50"></div>
-                <div class="piano-container relative" id="piano-container" oncontextmenu="return false;"></div>
+            <div style="text-align:center;">
+                <div class="piano-wrapper" id="piano-wrapper">
+                    <div class="piano-container" id="piano-container" oncontextmenu="return false;"></div>
+                </div>
             </div>
-            <div class="mt-12 flex flex-col md:flex-row gap-6 items-center justify-center">
-                <button id="init-audio-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-primary-glow to-secondary-glow text-white font-bold hover:scale-105 transition-transform shadow-[0_0_20px_rgba(0,240,255,0.4)] cursor-pointer tracking-wide uppercase text-sm">
-                    Attiva Sintetizzatore Audio
-                </button>
-                <div id="ai-hud" class="hidden opacity-0 translate-y-4 transition-all duration-700 glass-card p-4 border border-white/10 flex flex-col gap-3 min-w-[200px]">
-                    <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Neural Probabilities</span>
-                        <div class="w-2 h-2 rounded-full bg-primary-glow animate-pulse"></div>
+            <div class="demo-bottom">
+                <button id="init-audio-btn" class="activate-btn">Attiva Sintetizzatore Audio</button>
+                <div id="ai-hud" class="ai-hud">
+                    <div class="hud-header">
+                        <span class="hud-label">Neural Probabilities</span>
+                        <div class="hud-dot"></div>
                     </div>
-                    <div id="hud-content" class="space-y-2">
-                        <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                    <div id="hud-content">
+                        <div style="display:flex;justify-content:space-between;font-size:10px;font-family:'Space Mono',monospace;color:var(--text-muted);">
                             <span>AWAITING INPUT...</span><span>0%</span>
                         </div>
-                        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                            <div class="bg-primary-glow h-full w-0 transition-all duration-300"></div>
+                        <div style="width:100%;background:rgba(255,255,255,0.05);height:4px;border-radius:9999px;margin-top:8px;overflow:hidden;">
+                            <div style="background:var(--cyan);height:100%;width:0;transition:width 0.3s;"></div>
                         </div>
                     </div>
                 </div>
@@ -499,118 +848,99 @@
     </section>
 
     <!-- SMIR & TABULA RASA -->
-    <section id="ia" class="mb-24 md:mb-40 reveal pt-12 md:pt-20">
-        <div class="glass-card p-6 md:p-12 lg:p-16 relative overflow-hidden tilt-card">
+    <section id="ia" class="reveal">
+        <div class="glass-card smir-card">
             <div class="glint-overlay"></div>
-            <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-secondary-glow/20 to-transparent rounded-full blur-[80px] pointer-events-none"></div>
-            <div class="tilt-card-content">
-                <span class="section-tag bg-secondary-glow/10 text-secondary-glow border-secondary-glow/20">SMIR Technology</span>
-                <h2 class="font-serif text-4xl md:text-5xl font-bold mb-8 md:mb-10 italic relative z-10">L'Essenza degli <span class="gradient-text">SMIR</span></h2>
-                <div class="grid lg:grid-cols-2 gap-10 md:gap-16 relative z-10">
-                    <div>
-                        <p class="text-xl text-slate-300 leading-relaxed mb-10 font-light">Gli <strong>SMIR</strong> (Sistemi Musicali Interattivi Riflessivi) sono il cuore del MIROR: intelligenze artificiali progettate per comportarsi come "specchi musicali" purissimi.</p>
-                        <ul class="space-y-6">
-                            <li class="flex items-start gap-5 p-6 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:bg-white/[0.05] transition-colors">
-                                <div class="w-10 h-10 rounded-xl bg-primary-glow/20 flex items-center justify-center text-primary-glow font-bold shrink-0 shadow-[0_0_15px_rgba(0,240,255,0.3)]">1</div>
-                                <div>
-                                    <h5 class="text-white font-bold mb-2">Tabula Rasa</h5>
-                                    <p class="text-slate-400 leading-relaxed">Il sistema è inizialmente vuoto. Non possiede regole musicali preconcette, database o stili preimpostati.</p>
-                                </div>
-                            </li>
-                            <li class="flex items-start gap-5 p-6 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:bg-white/[0.05] transition-colors">
-                                <div class="w-10 h-10 rounded-xl bg-secondary-glow/20 flex items-center justify-center text-secondary-glow font-bold shrink-0 shadow-[0_0_15px_rgba(112,0,255,0.3)]">2</div>
-                                <div>
-                                    <h5 class="text-white font-bold mb-2">Apprendimento Agnostico</h5>
-                                    <p class="text-slate-400 leading-relaxed">Lo SMIR analizza in tempo reale lo stile, la grammatica e il fraseggio direttamente dal bambino mentre suona, apprendendo il suo "linguaggio".</p>
-                                </div>
-                            </li>
-                        </ul>
+            <div style="position:absolute;top:0;right:0;width:384px;height:384px;background:radial-gradient(circle,rgba(112,0,255,0.2),transparent);border-radius:50%;filter:blur(80px);pointer-events:none;"></div>
+            <span class="section-tag tag-purple">SMIR Technology</span>
+            <h2 style="font-style:italic;">L'Essenza degli <span class="gradient-text">SMIR</span></h2>
+            <div class="smir-inner">
+                <div>
+                    <p style="font-size:20px;color:#cbd5e1;line-height:1.7;margin-bottom:40px;font-weight:300;">Gli <strong>SMIR</strong> (Sistemi Musicali Interattivi Riflessivi) sono il cuore del MIROR: intelligenze artificiali progettate per comportarsi come "specchi musicali" purissimi.</p>
+                    <div class="smir-steps">
+                        <div class="smir-step">
+                            <div class="step-num">1</div>
+                            <div>
+                                <h5>Tabula Rasa</h5>
+                                <p>Il sistema è inizialmente vuoto. Non possiede regole musicali preconcette, database o stili preimpostati.</p>
+                            </div>
+                        </div>
+                        <div class="smir-step">
+                            <div class="step-num">2</div>
+                            <div>
+                                <h5>Apprendimento Agnostico</h5>
+                                <p>Lo SMIR analizza in tempo reale lo stile, la grammatica e il fraseggio direttamente dal bambino mentre suona, apprendendo il suo "linguaggio".</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-8 md:p-10 border border-white/10 rounded-3xl bg-white/[0.02] flex flex-col justify-center backdrop-blur-sm relative group overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        <h4 class="font-bold text-accent-glow mb-6 uppercase text-xs tracking-[0.2em] text-center">Pedagogia del Riflesso</h4>
-                        <p class="text-xl text-slate-300 italic text-center leading-relaxed font-serif">
-                            "Uno SMIR non corregge mai l'errore: lo accoglie e lo riflette come una legittima possibilità espressiva, validando profondamente l'autonomia creativa del bambino."
-                        </p>
-                    </div>
+                </div>
+                <div class="smir-quote">
+                    <h4>Pedagogia del Riflesso</h4>
+                    <p>"Uno SMIR non corregge mai l'errore: lo accoglie e lo riflette come una legittima possibilità espressiva, validando profondamente l'autonomia creativa del bambino."</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- ALGORITMO -->
-    <section id="tecnica" class="mb-16 md:mb-20 reveal pt-12 md:pt-20">
-        <div class="grid lg:grid-cols-2 gap-10 md:gap-16 items-center">
-            <div class="glass-card p-6 md:p-12 border-t-2 border-t-primary-glow">
-                <h3 class="text-3xl font-bold mb-8 text-white">L'Algoritmo della Risonanza</h3>
-                <div class="space-y-6">
-                    <div class="flex flex-col p-6 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:border-primary-glow/50 transition-colors group relative overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-b from-primary-glow/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                        <div class="flex justify-between items-center mb-5 relative z-10">
-                            <span class="text-sm uppercase tracking-widest text-primary-glow font-bold">Il Cuore del Sistema</span>
-                            <span class="font-mono text-white font-bold bg-primary-glow/20 px-3 py-1 rounded-full text-xs text-center shadow-[0_0_15px_rgba(0,240,255,0.3)]">Continuator / Markov</span>
+    <section id="tecnica" class="reveal">
+        <div class="algo-grid">
+            <div class="glass-card algo-card">
+                <h3>L'Algoritmo della Risonanza</h3>
+                <div class="algo-items">
+                    <div class="algo-item">
+                        <div class="algo-item-header">
+                            <span class="algo-item-label">Il Cuore del Sistema</span>
+                            <span class="algo-badge">Continuator / Markov</span>
                         </div>
-                        <p class="text-sm text-slate-300 leading-relaxed mb-4 relative z-10">Sviluppato da François Pachet al Sony CSL di Parigi, il <strong>Continuator</strong> è l'architettura matematica su cui si basa MIROR. È un sistema puramente "agnostico": non possiede regole preimpostate su scale, armonia o generi musicali.</p>
-                        <div class="space-y-4 relative z-10 mt-2">
-                            <div class="flex gap-3 items-start">
-                                <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
-                                <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Prefix Tree + Markov a ordine variabile:</strong> Il sistema memorizza l'intera sessione in un <em>albero dei prefissi</em>. A differenza di un modello a ordine fisso, l'ordine si adatta: quando i dati sono scarsi usa contesti brevi, quando il corpus è ricco sfrutta catene più lunghe.</p>
-                            </div>
-                            <div class="ml-4 p-4 rounded-xl bg-black/40 border border-primary-glow/20 relative">
-                                <div class="absolute -left-4 top-1/2 w-4 h-[1px] bg-primary-glow/20"></div>
-                                <p class="text-[11px] text-primary-glow font-bold uppercase tracking-widest mb-2">Esempio Pratico:</p>
-                                <p class="text-xs text-slate-400 leading-relaxed">Se il bambino suona <strong class="text-slate-300">DO-MI-SOL-DO-MI-FA</strong>, il sistema impara che dopo un <strong>DO</strong> c'è il 100% di probabilità che arrivi un <strong>MI</strong>. Ma dopo un <strong>MI</strong> l'albero si dirama: 50% SOL, 50% FA.</p>
-                            </div>
-                            <div class="flex gap-3 items-start mt-4">
-                                <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
-                                <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Corpus cumulativo di sessione:</strong> Il modello accumula tutto ciò che il bambino suona durante l'intera sessione.</p>
-                            </div>
-                            <div class="flex gap-3 items-start">
-                                <div class="w-1.5 h-1.5 rounded-full bg-primary-glow mt-1.5 shrink-0 shadow-[0_0_5px_currentColor]"></div>
-                                <p class="text-xs text-slate-400 leading-relaxed"><strong class="text-slate-300">Scaffolding Pedagogico:</strong> All'inizio predilige la ripetizione esatta per stabilire il contatto. Man mano introduce variazioni per mantenere il <em>Flow</em>.</p>
-                            </div>
+                        <p class="algo-body">Sviluppato da François Pachet al Sony CSL di Parigi, il <strong>Continuator</strong> è l'architettura matematica su cui si basa MIROR. Sistema puramente "agnostico": nessuna regola preimpostata su scale, armonia o generi.</p>
+                        <div class="algo-bullet">
+                            <div class="algo-dot"></div>
+                            <p><strong style="color:#cbd5e1;">Suffix Tree + Markov a ordine variabile:</strong> Memorizza l'intera sessione. L'ordine si adatta: contesti brevi quando i dati sono scarsi, catene più lunghe quando il corpus è ricco.</p>
+                        </div>
+                        <div class="algo-example">
+                            <div class="algo-example-label">Esempio Pratico</div>
+                            <p>Se il bambino suona <strong style="color:#cbd5e1;">DO-MI-SOL-DO-MI-FA</strong>, dopo un <strong>DO</strong> c'è 100% probabilità di un <strong>MI</strong>. Dopo un <strong>MI</strong> l'albero si dirama: 50% SOL, 50% FA.</p>
+                        </div>
+                        <div class="algo-bullet">
+                            <div class="algo-dot"></div>
+                            <p><strong style="color:#cbd5e1;">Scaffolding Pedagogico:</strong> All'inizio predilige la ripetizione esatta per stabilire il contatto. Man mano introduce variazioni per mantenere il <em>Flow</em>.</p>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center p-5 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:border-secondary-glow/30 transition-colors">
-                        <div class="flex flex-col">
-                            <span class="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Latenza Strategica</span>
-                            <span class="text-slate-400 text-sm">Il tempo di attesa perfetto</span>
-                        </div>
-                        <span class="font-mono text-xl text-primary-glow font-bold shadow-[0_0_10px_rgba(0,240,255,0.2)]">400 ms</span>
+                    <div class="stat-row">
+                        <div><div class="stat-label">Latenza Strategica</div><div class="stat-sub">Il tempo di attesa perfetto</div></div>
+                        <span class="stat-val">400 ms</span>
                     </div>
-                    <div class="flex justify-between items-center p-5 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:border-secondary-glow/30 transition-colors">
-                        <div class="flex flex-col">
-                            <span class="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Durata Specchiata</span>
-                            <span class="text-slate-400 text-sm">Bilanciamento del dialogo</span>
-                        </div>
-                        <span class="font-mono text-xl text-secondary-glow font-bold">Input ≈ Output</span>
+                    <div class="stat-row">
+                        <div><div class="stat-label">Durata Specchiata</div><div class="stat-sub">Bilanciamento del dialogo</div></div>
+                        <span class="stat-val purple">Input ≈ Output</span>
                     </div>
-                    <div class="flex flex-col p-5 bg-accent-glow/5 rounded-2xl border border-accent-glow/20">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-xs uppercase tracking-widest text-accent-glow font-bold">Turn Taking Dinamico</span>
-                            <span class="font-mono text-white font-bold bg-accent-glow/20 px-3 py-1 rounded-full text-sm">Interruzione</span>
+                    <div class="stat-turn">
+                        <div class="stat-turn-header">
+                            <span class="stat-turn-label">Turn Taking Dinamico</span>
+                            <span class="stat-turn-badge">Interruzione</span>
                         </div>
-                        <p class="text-sm text-slate-400 leading-relaxed">Se il bambino riprende a suonare, lo SMIR tace immediatamente restituendo il controllo.</p>
+                        <p class="stat-turn p" style="font-size:14px;color:var(--text-muted);line-height:1.7;">Se il bambino riprende a suonare, lo SMIR tace immediatamente restituendo il controllo.</p>
                     </div>
                 </div>
             </div>
-            <div class="p-2 md:p-8">
-                <h4 class="font-serif text-4xl font-bold mb-6 italic text-white">Il Flow e il Benessere</h4>
-                <p class="text-slate-400 text-lg italic mb-10 border-l-2 border-white/20 pl-6 py-2">"La combinazione bilanciata di sistemi riflessivi e interazione umana porta naturalmente allo stato di Flow."</p>
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="p-6 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/[0.05] transition-colors">
-                        <div class="w-10 h-10 rounded-full bg-primary-glow/10 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-primary-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <div class="flow-col">
+                <h4>Il Flow e il Benessere</h4>
+                <p class="flow-quote-text">"La combinazione bilanciata di sistemi riflessivi e interazione umana porta naturalmente allo stato di Flow."</p>
+                <div class="flow-cards">
+                    <div class="flow-card">
+                        <div class="flow-card-icon cyan">
+                            <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         </div>
-                        <h5 class="text-sm font-bold text-white uppercase mb-2">Ripetizione</h5>
-                        <p class="text-sm text-slate-400 leading-relaxed">Genera un senso di sicurezza, competenza e riconoscimento emotivo.</p>
+                        <h5>Ripetizione</h5>
+                        <p>Genera un senso di sicurezza, competenza e riconoscimento emotivo.</p>
                     </div>
-                    <div class="p-6 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/[0.05] transition-colors">
-                        <div class="w-10 h-10 rounded-full bg-secondary-glow/10 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-secondary-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <div class="flow-card">
+                        <div class="flow-card-icon purple">
+                            <svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
-                        <h5 class="text-sm font-bold text-white uppercase mb-2">Variazione</h5>
-                        <p class="text-sm text-slate-400 leading-relaxed">Stimola la curiosità innata, l'invenzione e l'esplorazione autonoma.</p>
+                        <h5>Variazione</h5>
+                        <p>Stimola la curiosità innata, l'invenzione e l'esplorazione autonoma.</p>
                     </div>
                 </div>
             </div>
@@ -618,10 +948,10 @@
     </section>
 </main>
 
-<footer class="py-16 border-t border-white/[0.05] text-center relative z-10 bg-black/40 backdrop-blur-md">
-    <p class="text-xs text-slate-500 uppercase tracking-[0.2em] leading-loose max-w-2xl mx-auto px-6">
+<footer>
+    <p>
         Università di Bologna | Progetto MIROR FP7<br>
-        <span class="text-slate-600 mt-2 block">Basato sulle ricerche della Prof.ssa Anna Rita Addessi</span>
+        <span>Basato sulle ricerche della Prof.ssa Anna Rita Addessi</span>
     </p>
 </footer>
 
@@ -657,7 +987,7 @@
     const icosaGeo = new THREE.IcosahedronGeometry(4, 1);
     const icoMat = new THREE.MeshPhongMaterial({
         color: 0x00f0ff, emissive: 0x003344,
-        wireframe: true, transparent: true, opacity: 0.35
+        wireframe: true, transparent: true, opacity: 0.45
     });
     const ico1 = new THREE.Mesh(icosaGeo, icoMat);
     ico1.position.set(-18, 8, -5);
@@ -665,7 +995,7 @@
 
     const ico2 = new THREE.Mesh(
         new THREE.IcosahedronGeometry(2.5, 1),
-        new THREE.MeshPhongMaterial({ color: 0x7000ff, wireframe: true, transparent: true, opacity: 0.3 })
+        new THREE.MeshPhongMaterial({ color: 0x7000ff, wireframe: true, transparent: true, opacity: 0.4 })
     );
     ico2.position.set(20, -10, -8);
     scene.add(ico2);
@@ -674,7 +1004,7 @@
     const torusGeo = new THREE.TorusKnotGeometry(5, 1.2, 120, 16);
     const torusMat = new THREE.MeshPhongMaterial({
         color: 0x7000ff, emissive: 0x220044,
-        wireframe: true, transparent: true, opacity: 0.22
+        wireframe: true, transparent: true, opacity: 0.32
     });
     const torusKnot = new THREE.Mesh(torusGeo, torusMat);
     torusKnot.position.set(16, 12, -15);
@@ -684,7 +1014,7 @@
     // ── Octahedron ──
     const octaGeo = new THREE.OctahedronGeometry(3, 0);
     const octaMat = new THREE.MeshPhongMaterial({
-        color: 0xff003c, wireframe: true, transparent: true, opacity: 0.25
+        color: 0xff003c, wireframe: true, transparent: true, opacity: 0.35
     });
     const octa = new THREE.Mesh(octaGeo, octaMat);
     octa.position.set(-15, -12, -10);
@@ -706,7 +1036,7 @@
     const ptGeo = new THREE.BufferGeometry();
     ptGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     ptGeo.setAttribute('color', new THREE.BufferAttribute(colors3, 3));
-    const ptMat = new THREE.PointsMaterial({ size: 0.25, vertexColors: true, transparent: true, opacity: 0.7 });
+    const ptMat = new THREE.PointsMaterial({ size: 0.4, vertexColors: true, transparent: true, opacity: 0.85, sizeAttenuation: true });
     scene.add(new THREE.Points(ptGeo, ptMat));
 
     // Mouse parallax
@@ -939,13 +1269,13 @@ document.addEventListener('mousemove', e => {
 // ═══════════════════════════════════════════════════
 // 6. TILT CARDS with glint
 // ═══════════════════════════════════════════════════
-document.querySelectorAll('.tilt-card, .bento-item').forEach(card => {
+document.querySelectorAll('.glass-card, .bento-item, .neuro-card, .smir-card, .algo-card').forEach(card => {
     card.addEventListener('mousemove', e => {
         const r = card.getBoundingClientRect();
         const x = e.clientX - r.left, y = e.clientY - r.top;
-        const rx = (r.height/2 - y) / 10;
-        const ry = (x - r.width/2) / 10;
-        card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        const rx = (r.height/2 - y) / 12;
+        const ry = (x - r.width/2) / 12;
+        card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-7px)`;
         const glint = card.querySelector('.glint-overlay');
         if (glint) {
             glint.style.setProperty('--x', `${(x/r.width*100).toFixed(1)}%`);
@@ -953,7 +1283,7 @@ document.querySelectorAll('.tilt-card, .bento-item').forEach(card => {
         }
     });
     card.addEventListener('mouseleave', () => {
-        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)';
     });
 });
 
