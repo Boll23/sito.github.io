@@ -127,12 +127,7 @@
             background: rgba(255,255,255,0.045);
         }
 
-        .glint-overlay {
-            position: absolute; inset: 0;
-            background: radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,255,255,0.12) 0%, transparent 60%);
-            pointer-events: none; opacity: 0; transition: opacity 0.3s;
-        }
-        .glass-card:hover .glint-overlay { opacity: 1; }
+
 
         /* ── GRADIENT TEXT ── */
         .gradient-text {
@@ -222,10 +217,7 @@
             margin-bottom: 16px;
             transform-style: preserve-3d;
         }
-        .hero-letter {
-            display: inline-block;
-            transition: transform 0.05s ease-out, text-shadow 0.1s ease;
-        }
+
         .hero h2 {
             font-size: clamp(16px, 2.5vw, 28px);
             font-weight: 300; letter-spacing: 0.15em;
@@ -424,12 +416,11 @@
 
         /* ── PIANO ── */
         .piano-wrapper {
-            display: inline-block;
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 24px; padding: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
+            display: inline-block; backdrop-filter: blur(20px);
             position: relative;
             transform: perspective(2000px) rotateX(4deg);
             transition: transform 0.1s ease-out;
@@ -440,13 +431,17 @@
             background: linear-gradient(90deg, rgba(0,240,255,0.2), rgba(112,0,255,0.2), rgba(0,240,255,0.2));
             border-radius: 28px; filter: blur(8px); opacity: 0.5; z-index: -1;
         }
+        @media (max-width: 600px) {
+            .piano-wrapper { transform: none; padding: 16px; border-radius: 16px; }
+        }
         .piano-container {
             position: relative; height: 220px;
             display: flex; justify-content: center;
             user-select: none; touch-action: none;
             perspective: 1200px; transform-style: preserve-3d;
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
         }
-        .key-wrapper { position: relative; }
+        .key-wrapper { position: relative; flex-shrink: 0; }
         .white-key {
             width: 50px; height: 100%;
             background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
@@ -454,10 +449,10 @@
             border-radius: 0 0 12px 12px;
             box-shadow: inset 0 -4px 10px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.3);
             z-index: 1; position: relative; cursor: pointer;
-            transition: all 0.1s cubic-bezier(0.4,0,0.2,1);
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; align-items: flex-end; justify-content: center;
-            padding-bottom: 15px; color: rgba(0,0,0,0.3);
-            font-weight: 700; font-size: 12px; transform-origin: top;
+            padding-bottom: 15px; color: rgba(0,0,0,0.3); font-weight: bold; font-size: 12px;
+            transform-origin: top;
         }
         .white-key:hover {
             background: linear-gradient(to bottom, rgba(240,240,255,0.98), rgba(220,220,255,0.9));
@@ -469,17 +464,15 @@
             border-radius: 0 0 6px 6px;
             box-shadow: 2px 4px 10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
             position: absolute; top: 0; z-index: 2; cursor: pointer;
-            transition: all 0.1s cubic-bezier(0.4,0,0.2,1);
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; align-items: flex-end; justify-content: center;
-            padding-bottom: 10px; color: rgba(255,255,255,0.3);
-            font-size: 10px; font-weight: 700; transform-origin: top;
+            padding-bottom: 10px; color: rgba(255,255,255,0.3); font-size: 10px; font-weight: bold;
+            transform-origin: top;
         }
         .black-key:hover {
             background: linear-gradient(to bottom, #2a2a4e, #1a1a3e);
-            box-shadow: 2px 4px 10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(0,240,255,0.2);
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(0,240,255,0.2), 0 0 10px rgba(0,240,255,0.1);
         }
-        .white-key.active-user { background: #e0fdff; color: var(--cyan); transform: rotateX(3deg); z-index: 3; border-bottom-width: 1px; box-shadow: inset 0 -4px 20px var(--cyan), 0 0 30px rgba(0,240,255,0.6), 0 0 60px rgba(0,240,255,0.3); }
-        .black-key.active-user { background: linear-gradient(to bottom,#005566,#002233); color: var(--cyan); transform: rotateX(3deg); border-bottom-width: 1px; box-shadow: inset 0 2px 5px var(--cyan), 0 0 20px rgba(0,240,255,0.5); }
         .white-key.active-ai   { background: #f0e0ff; color: var(--purple); transform: rotateX(3deg); z-index: 3; border-bottom-width: 1px; box-shadow: inset 0 -4px 20px var(--purple), 0 0 30px rgba(112,0,255,0.6), 0 0 60px rgba(112,0,255,0.3); }
         .black-key.active-ai   { background: linear-gradient(to bottom,#330066,#110022); color: var(--purple); transform: rotateX(3deg); border-bottom-width: 1px; box-shadow: inset 0 2px 5px var(--purple), 0 0 20px rgba(112,0,255,0.5); }
 
@@ -724,8 +717,8 @@
             <span class="pulse-dot"></span>
             Neurodidattica Musicale
         </span>
-        <h1 id="hero-title" style="transform-style:preserve-3d;">
-            <span class="hero-letter" data-z="60">M</span><span class="hero-letter" data-z="20">I</span><span class="hero-letter" data-z="50">R</span><span class="hero-letter" data-z="15">O</span><span class="hero-letter" data-z="55">R</span>
+        <h1 id="hero-title">
+            MIROR
         </h1>
         <h2>Musical Interaction Relying On <span class="gradient-text" style="font-weight:700;">Reflexion</span></h2>
         <div class="hero-divider"></div>
@@ -983,6 +976,8 @@
     pointLight3.position.set(0, -20, 10);
     scene.add(pointLight3);
 
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) renderer.setPixelRatio(1);
     // ── Wireframe Icosahedra (replaced CSS cubes) ──
     const icosaGeo = new THREE.IcosahedronGeometry(4, 1);
     const icoMat = new THREE.MeshPhongMaterial({
@@ -1009,7 +1004,7 @@
     const torusKnot = new THREE.Mesh(torusGeo, torusMat);
     torusKnot.position.set(16, 12, -15);
     torusKnot.scale.setScalar(0.8);
-    scene.add(torusKnot);
+    if (!isMobile) scene.add(torusKnot);
 
     // ── Octahedron ──
     const octaGeo = new THREE.OctahedronGeometry(3, 0);
@@ -1021,7 +1016,7 @@
     scene.add(octa);
 
     // ── 3D Particle Cloud with Z depth ──
-    const PARTICLE_COUNT = 200;
+    const PARTICLE_COUNT = isMobile ? 60 : 200;
     const positions = new Float32Array(PARTICLE_COUNT * 3);
     const colors3 = new Float32Array(PARTICLE_COUNT * 3);
     for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -1099,7 +1094,7 @@ function initParticles() {
     neuronCanvas.width  = window.innerWidth;
     neuronCanvas.height = window.innerHeight;
     particles = [];
-    const count = Math.min(window.innerWidth / 15, 100);
+    const count = window.innerWidth < 768 ? Math.min(window.innerWidth / 25, 35) : Math.min(window.innerWidth / 15, 100);
     for (let i = 0; i < count; i++) {
         const z = Math.random(); // 0=far, 1=near
         particles.push({
@@ -1239,53 +1234,16 @@ window.triggerBloom = function(x, y, isAi) {
 // ═══════════════════════════════════════════════════
 // 4. PIANO MOUSE PARALLAX (replace fixed rotateX)
 // ═══════════════════════════════════════════════════
-const pianoWrapper = document.getElementById('piano-wrapper');
-if (pianoWrapper) {
-    pianoWrapper.addEventListener('mousemove', e => {
-        const r = pianoWrapper.getBoundingClientRect();
-        const rx = (e.clientY - r.top  - r.height/2) / r.height * -10 + 4;
-        const ry = (e.clientX - r.left - r.width/2)  / r.width  *  6;
-        pianoWrapper.style.transform = `perspective(2000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
-    });
-    pianoWrapper.addEventListener('mouseleave', () => {
-        pianoWrapper.style.transform = 'perspective(2000px) rotateX(4deg) rotateY(0deg)';
-    });
-}
+
 
 // ═══════════════════════════════════════════════════
 // 5. HERO LETTERS — depth of field parallax
 // ═══════════════════════════════════════════════════
-document.addEventListener('mousemove', e => {
-    const mx = (e.clientX / window.innerWidth  - 0.5);
-    const my = (e.clientY / window.innerHeight - 0.5);
-    document.querySelectorAll('.hero-letter').forEach(el => {
-        const z = parseFloat(el.dataset.z) || 30;
-        const factor = z / 60;
-        el.style.transform = `translate(${mx * factor * 18}px, ${my * factor * 12}px) translateZ(${z}px)`;
-        el.style.textShadow = `0 0 ${8 + z/4}px rgba(0,240,255,${0.1 + factor * 0.4})`;
-    });
-});
+
 
 // ═══════════════════════════════════════════════════
 // 6. TILT CARDS with glint
 // ═══════════════════════════════════════════════════
-document.querySelectorAll('.glass-card, .bento-item, .neuro-card, .smir-card, .algo-card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-        const r = card.getBoundingClientRect();
-        const x = e.clientX - r.left, y = e.clientY - r.top;
-        const rx = (r.height/2 - y) / 12;
-        const ry = (x - r.width/2) / 12;
-        card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-7px)`;
-        const glint = card.querySelector('.glint-overlay');
-        if (glint) {
-            glint.style.setProperty('--x', `${(x/r.width*100).toFixed(1)}%`);
-            glint.style.setProperty('--y', `${(y/r.height*100).toFixed(1)}%`);
-        }
-    });
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)';
-    });
-});
 
 // ═══════════════════════════════════════════════════
 // 7. SCROLL REVEAL + PROGRESS BAR
@@ -1297,11 +1255,9 @@ window.addEventListener('scroll', () => {
     if (progressBar) progressBar.style.width = pct + '%';
     const nav = document.getElementById('navbar');
     if (window.scrollY > 50) {
-        nav.classList.add('bg-black/40','backdrop-blur-lg','shadow-lg','py-3');
-        nav.classList.remove('py-6');
+        nav.classList.add('scrolled');
     } else {
-        nav.classList.remove('bg-black/40','backdrop-blur-lg','shadow-lg','py-3');
-        nav.classList.add('py-6');
+        nav.classList.remove('scrolled');
     }
 });
 
@@ -1341,31 +1297,56 @@ const pianoKeys = [
     { note:'B4',  freq:493.88, type:'white', key:'j' },
     { note:'C5',  freq:523.25, type:'white', key:'k' },
 ];
-
-const pianoContainer = document.getElementById('piano-container');
 const keyElements = {};
 
-pianoKeys.forEach((k, idx) => {
-    if (k.type === 'white') {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'key-wrapper';
-        const wKey = document.createElement('div');
-        wKey.className = 'white-key';
-        wKey.dataset.note = k.note;
-        wKey.innerHTML = `<span>${k.key.toUpperCase()}</span>`;
-        wrapper.appendChild(wKey);
-        if (idx + 1 < pianoKeys.length && pianoKeys[idx+1].type === 'black') {
-            const bKey = document.createElement('div');
-            bKey.className = 'black-key';
-            bKey.dataset.note = pianoKeys[idx+1].note;
-            bKey.innerHTML = `<span>${pianoKeys[idx+1].key.toUpperCase()}</span>`;
-            wrapper.appendChild(bKey);
-            keyElements[pianoKeys[idx+1].note] = bKey;
+let pianoContainer;
+
+function buildPiano() {
+    pianoContainer = document.getElementById('piano-container');
+    if (!pianoContainer) return;
+    pianoContainer.innerHTML = '';
+
+    pianoKeys.forEach((k, idx) => {
+        if (k.type === 'white') {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'key-wrapper';
+
+            const wKey = document.createElement('div');
+            wKey.className = 'white-key';
+            wKey.dataset.note = k.note;
+            wKey.innerHTML = '<span>' + k.key.toUpperCase() + '</span>';
+            wrapper.appendChild(wKey);
+
+            // Attach black key if next in array is black
+            if (idx + 1 < pianoKeys.length && pianoKeys[idx+1].type === 'black') {
+                const bk = pianoKeys[idx+1];
+                const bKey = document.createElement('div');
+                bKey.className = 'black-key';
+                bKey.dataset.note = bk.note;
+                bKey.style.left = '34px'; // (50px white - 32px black/2) = 34px
+                bKey.innerHTML = '<span>' + bk.key.toUpperCase() + '</span>';
+                wrapper.appendChild(bKey);
+                keyElements[bk.note] = bKey;
+            }
+
+            pianoContainer.appendChild(wrapper);
+            keyElements[k.note] = wKey;
         }
-        pianoContainer.appendChild(wrapper);
-        keyElements[k.note] = wKey;
-    }
-});
+    });
+}
+
+// Build on DOMContentLoaded to ensure #piano-container exists
+function onDOMReady() {
+    buildPiano();
+    initListeners();
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onDOMReady);
+} else {
+    onDOMReady();
+}
+
+
 
 function playTone(freq, duration = 200) {
     if (!audioCtxRef.current) return;
@@ -1574,16 +1555,35 @@ function triggerMirror() {
     }, lastDelay));
 }
 
-pianoContainer.addEventListener('mousedown', e => {
-    const keyEl = e.target.closest('[data-note]');
-    if (keyEl) playKey(keyEl.dataset.note);
-});
+// All DOM-dependent listeners inside DOMContentLoaded
+function initListeners() {
+    pianoContainer.addEventListener('mousedown', e => {
+        const keyEl = e.target.closest('[data-note]');
+        if (keyEl) playKey(keyEl.dataset.note);
+    });
+    pianoContainer.addEventListener('touchstart', e => {
+        e.preventDefault();
+        Array.from(e.changedTouches).forEach(touch => {
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            const keyEl = el && el.closest('[data-note]');
+            if (keyEl) playKey(keyEl.dataset.note);
+        });
+    }, { passive: false });
+    pianoContainer.addEventListener('touchmove', e => {
+        e.preventDefault();
+        Array.from(e.changedTouches).forEach(touch => {
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            const keyEl = el && el.closest('[data-note]');
+            if (keyEl) playKey(keyEl.dataset.note);
+        });
+    }, { passive: false });
 
-document.getElementById('init-audio-btn').addEventListener('click', function() {
-    audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    this.style.display = 'none';
-    setStatus('idle');
-});
+    document.getElementById('init-audio-btn').addEventListener('click', function() {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        this.style.display = 'none';
+        setStatus('idle');
+    });
+}
 
 window.addEventListener('keydown', e => {
     if (e.repeat) return;
