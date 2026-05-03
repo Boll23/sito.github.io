@@ -470,8 +470,8 @@
                 box-sizing: border-box;
             }
             .piano-container {
-                justify-content: flex-start;
-                height: 180px;
+                justify-content: center;
+                height: clamp(140px, 38vw, 180px);
             }
             #demo .demo-desc { font-size: 13px; padding: 0 4px; }
             #smir-status { font-size: 10px; padding: 8px 16px; margin-bottom: 24px; }
@@ -487,7 +487,7 @@
         }
         .key-wrapper { position: relative; flex-shrink: 0; }
         .white-key {
-            width: 50px; height: 100%;
+            width: clamp(34px, 10vw, 50px); height: 100%;
             background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
             border: 1px solid rgba(0,0,0,0.2); border-bottom: 4px solid #ddd;
             border-radius: 0 0 12px 12px;
@@ -495,7 +495,8 @@
             z-index: 1; position: relative; cursor: pointer;
             transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; align-items: flex-end; justify-content: center;
-            padding-bottom: 15px; color: rgba(0,0,0,0.3); font-weight: bold; font-size: 12px;
+            padding-bottom: 12px; color: rgba(0,0,0,0.3); font-weight: bold;
+            font-size: clamp(8px, 2vw, 12px);
             transform-origin: top;
         }
         .white-key:hover {
@@ -503,7 +504,7 @@
             box-shadow: inset 0 -4px 10px rgba(0,240,255,0.1), 0 5px 20px rgba(0,0,0,0.4);
         }
         .black-key {
-            width: 32px; height: 140px;
+            width: clamp(22px, 6.5vw, 32px); height: clamp(90px, 18vw, 140px);
             background: linear-gradient(to bottom, #1a1a2e 0%, #0d0d1a 60%, #000 100%);
             border-radius: 0 0 6px 6px;
             box-shadow: 2px 4px 10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
@@ -1367,7 +1368,11 @@ function buildPiano() {
                 const bKey = document.createElement('div');
                 bKey.className = 'black-key';
                 bKey.dataset.note = bk.note;
-                bKey.style.left = '34px'; // (50px white - 32px black/2) = 34px
+                // Mirror CSS clamp(34px,10vw,50px) for white key width
+                const vw = window.innerWidth;
+                const wkWpx = Math.min(50, Math.max(34, vw * 0.10));
+                const bkWpx = Math.min(32, Math.max(22, vw * 0.065));
+                bKey.style.left = (wkWpx - bkWpx / 2) + 'px';
                 bKey.innerHTML = '<span>' + bk.key.toUpperCase() + '</span>';
                 wrapper.appendChild(bKey);
                 keyElements[bk.note] = bKey;
