@@ -312,11 +312,16 @@
         }
         @media (max-width: 900px) {
             .bento-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
-            .bento-col-2 { grid-column: span 2; }
+            .bento-col-2 { grid-column: span 2; grid-row: span 1; min-height: 220px; }
         }
         @media (max-width: 600px) {
-            .bento-grid { grid-template-columns: 1fr; }
-            .bento-col-2 { grid-column: span 1; }
+            .bento-grid { grid-template-columns: 1fr; grid-template-rows: auto; gap: 14px; }
+            .bento-col-2 { grid-column: span 1; grid-row: span 1; min-height: unset; }
+            .bento-item  { padding: 22px; border-radius: 18px; height: auto !important; }
+            .bento-icon  { width: 48px; height: 48px; font-size: 26px; margin-bottom: 16px; }
+            .bento-item h4 { font-size: 18px; margin-bottom: 8px; }
+            .bento-item p  { font-size: 13px; }
+            .bento-tags    { flex-wrap: wrap; gap: 6px; }
         }
         .bento-item {
             background: var(--glass-bg);
@@ -331,6 +336,8 @@
         }
         .bento-item:hover { transform: translateY(-7px); }
         .bento-col-2 { grid-column: span 2; grid-row: span 2; }
+        .bento-half { grid-column: span 2; }
+        @media (max-width: 600px) { .bento-half { grid-column: span 1; } }
         .bento-cyan  { border-color: rgba(0,240,255,0.2); }
         .bento-cyan:hover  { border-color: rgba(0,240,255,0.4); }
         .bento-purple{ border-color: rgba(112,0,255,0.2); }
@@ -777,7 +784,7 @@
                     <span class="bento-tag">Flow State</span>
                 </div>
             </div>
-            <div class="bento-item bento-purple" style="grid-column:span 2;">
+            <div class="bento-item bento-purple bento-half">
                 <div class="noise-overlay"></div>
                 <div style="display:flex;gap:32px;align-items:flex-start;">
                     <div class="bento-icon icon-purple" style="flex-shrink:0;">🎼</div>
