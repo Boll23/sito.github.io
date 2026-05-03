@@ -399,7 +399,7 @@
 
         /* ── DEMO SECTION ── */
         #demo .demo-card {
-            padding: 48px;
+            padding: clamp(20px, 5vw, 48px);
             text-align: center;
             border: 1px solid rgba(255,255,255,0.1);
             position: relative; overflow: hidden;
@@ -461,7 +461,22 @@
             border-radius: 28px; filter: blur(8px); opacity: 0.5; z-index: -1;
         }
         @media (max-width: 600px) {
-            .piano-wrapper { transform: none; padding: 16px; border-radius: 16px; }
+            .piano-wrapper {
+                transform: none;
+                padding: 12px;
+                border-radius: 16px;
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .piano-container {
+                justify-content: flex-start;
+                height: 180px;
+            }
+            #demo .demo-desc { font-size: 13px; padding: 0 4px; }
+            #smir-status { font-size: 10px; padding: 8px 16px; margin-bottom: 24px; }
+            .activate-btn { font-size: 12px; padding: 10px 24px; }
+            .demo-bottom { gap: 14px; margin-top: 24px; }
         }
         .piano-container {
             position: relative; height: 220px;
@@ -844,7 +859,7 @@
                 <span id="smir-indicator"></span>
                 <span id="smir-text">In attesa... (Premi Attiva)</span>
             </div>
-            <div style="text-align:center;">
+            <div style="text-align:center;overflow-x:auto;padding:4px 0;">
                 <div class="piano-wrapper" id="piano-wrapper">
                     <div class="piano-container" id="piano-container" oncontextmenu="return false;"></div>
                 </div>
