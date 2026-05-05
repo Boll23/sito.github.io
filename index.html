@@ -1490,15 +1490,8 @@ const statusInd  = document.getElementById('smir-indicator');
 const statusBox  = document.getElementById('smir-status');
 
 function setStatus(mode) {
-    statusBox.className = 'inline-flex items-center gap-3 px-6 py-3 rounded-full border text-sm font-bold transition-all duration-300 shadow-inner ' +
-        (mode==='user' ? 'bg-primary-glow/20 border-primary-glow/50 text-primary-glow shadow-[0_0_15px_rgba(0,240,255,0.2)]'
-        : mode==='ai'  ? 'bg-secondary-glow/20 border-secondary-glow/50 text-secondary-glow shadow-[0_0_15px_rgba(112,0,255,0.2)]'
-        : 'bg-white/5 border-white/10 text-slate-300');
-    statusInd.className = 'w-2.5 h-2.5 rounded-full animate-pulse shadow-[0_0_10px_currentColor] ' +
-        (mode==='user' ? 'bg-primary-glow' : mode==='ai' ? 'bg-secondary-glow' : 'bg-slate-500');
-    statusText.className = 'tracking-wide uppercase text-xs ' +
-        (mode==='user' ? 'text-primary-glow' : mode==='ai' ? 'text-secondary-glow' : 'text-slate-300');
-    statusText.innerText = mode==='user' ? 'Ascolto...' : mode==='ai' ? 'MIROR risponde...' : 'In attesa... (Tocca a te)';
+    statusBox.className = 'smir-status ' + (mode === 'user' ? 'mode-user' : mode === 'ai' ? 'mode-ai' : '');
+    statusText.textContent = mode === 'user' ? 'Ascolto...' : mode === 'ai' ? 'MIROR risponde...' : 'In attesa... (Tocca a te)';
 }
 
 function interruptAi() {
@@ -1512,19 +1505,19 @@ function interruptAi() {
 
 function updateHud(note, probability, mode='predict') {
     const hud = document.getElementById('ai-hud');
-    const content = document.getElementById('hud-content');
-    hud.classList.remove('hidden');
-    setTimeout(() => { hud.classList.add('opacity-100','translate-y-0'); hud.classList.remove('opacity-0','translate-y-4'); }, 50);
-    const label = mode==='predict' ? 'PREDICTING NEXT' : 'NEURAL OUTPUT';
-    const color = mode==='predict' ? 'text-primary-glow' : 'text-secondary-glow';
-    const barColor = mode==='predict' ? 'bg-primary-glow' : 'bg-secondary-glow';
-    content.innerHTML = `
-        <div class="flex justify-between text-[10px] font-mono ${color}">
-            <span>${label}: ${note}</span><span>${Math.round(probability*100)}%</span>
-        </div>
-        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-            <div class="${barColor} h-full transition-all duration-500" style="width:${probability*100}%"></div>
-        </div>`;
+    const hudContent = document.getElementById('hud-content');
+    hud.style.display = 'block';
+    hud.classList.add('visible');
+    const color = mode === 'predict' ? 'var(--cyan)' : 'var(--purple)';
+    const label = mode === 'predict' ? 'PREDICTING NEXT' : 'NEURAL OUTPUT';
+    const pct = Math.round(probability * 100);
+    hudContent.innerHTML =
+        '<div style="display:flex;justify-content:space-between;font-size:10px;font-family:monospace;color:' + color + ';margin-bottom:6px;">' +
+            '<span>' + label + ': ' + note + '</span><span>' + pct + '%</span>' +
+        '</div>' +
+        '<div style="width:100%;background:rgba(255,255,255,0.05);height:4px;border-radius:9999px;overflow:hidden;">' +
+            '<div style="background:' + color + ';height:100%;width:' + pct + '%;transition:width 0.4s ease;"></div>' +
+        '</div>';
 }
 
 function playKey(note, isAi = false) {
